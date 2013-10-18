@@ -203,7 +203,7 @@ errout:
     // Clean up and add errcode/errmsg to reply
     if (conn) {
         xpc_connection_suspend(conn);
-        xpc_release(conn);
+        //xpc_release(conn);
     }
     if (errcode && ret_fd != -1)
         close(ret_fd);
