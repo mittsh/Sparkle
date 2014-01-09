@@ -8,9 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		0305627915D2A73D00B43EF8 /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B887B5E1517F3AB000BB292 /* com.andymatuschak.Sparkle.install-service.xpc */; };
-		0316B7DF183E5E470002D51A /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* Sparkle.framework */; };
-		0316B7E0183E5E490002D51A /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B887B5E1517F3AB000BB292 /* com.andymatuschak.Sparkle.install-service.xpc */; };
-		0316B7E1183E5E4B0002D51A /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 03B5E63A15D399500038BB67 /* com.andymatuschak.Sparkle.download-service.xpc */; };
 		03B5E63B15D399500038BB67 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B887B601517F3AC000BB292 /* Foundation.framework */; };
 		03B5E64115D399500038BB67 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 03B5E63F15D399500038BB67 /* InfoPlist.strings */; };
 		03B5E64415D399500038BB67 /* download_service.m in Sources */ = {isa = PBXBuildFile; fileRef = 03B5E64315D399500038BB67 /* download_service.m */; };
@@ -212,18 +209,6 @@
 			files = (
 				0305627915D2A73D00B43EF8 /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */,
 				03B5E65A15D3DC3C0038BB67 /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0316B7DE183E5E310002D51A /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /Users/erik/Program/build/Release/Sparkle;
-			dstSubfolderSpec = 0;
-			files = (
-				0316B7DF183E5E470002D51A /* Sparkle.framework in CopyFiles */,
-				0316B7E0183E5E490002D51A /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */,
-				0316B7E1183E5E4B0002D51A /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1064,7 +1049,6 @@
 				8DC2EF520486A6940098B216 /* Resources */,
 				8DC2EF540486A6940098B216 /* Sources */,
 				8DC2EF560486A6940098B216 /* Frameworks */,
-				0316B7DE183E5E310002D51A /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -1573,7 +1557,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -1600,7 +1584,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -1624,6 +1608,8 @@
 			baseConfigurationReference = FA1941CA0D94A70100DD942E /* ConfigFrameworkDebug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
+				COPY_PHASE_STRIP = NO;
+				INSTALL_PATH = "@loader_path/../Frameworks";
 			};
 			name = Debug;
 		};
@@ -1632,6 +1618,8 @@
 			baseConfigurationReference = FA1941D50D94A70100DD942E /* ConfigFrameworkRelease.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
+				COPY_PHASE_STRIP = NO;
+				INSTALL_PATH = "@loader_path/../Frameworks";
 			};
 			name = Release;
 		};
@@ -1680,7 +1668,7 @@
 			baseConfigurationReference = FA1941D40D94A70100DD942E /* ConfigRelaunchRelease.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1704,6 +1692,7 @@
 			baseConfigurationReference = FA1941D40D94A70100DD942E /* ConfigRelaunchRelease.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = finish_installation.pch;
@@ -1754,6 +1743,8 @@
 			baseConfigurationReference = 61072EB20DF2640C008FE88B /* ConfigFrameworkReleaseGCSupport.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
+				COPY_PHASE_STRIP = NO;
+				INSTALL_PATH = "@loader_path/../Frameworks";
 			};
 			name = "Release (GC dual-mode; 10.5+)";
 		};
@@ -1812,6 +1803,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8B887B711517F447000BB292 /* ConfigServiceDebug.xcconfig */;
 			buildSettings = {
+				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = SandboxService.plist;
 				SDKROOT = macosx;
 			};
@@ -1821,6 +1813,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8B887B721517F447000BB292 /* ConfigServiceRelease.xcconfig */;
 			buildSettings = {
+				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = SandboxService.plist;
 				SDKROOT = macosx;
 			};
@@ -1830,6 +1823,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8B887B721517F447000BB292 /* ConfigServiceRelease.xcconfig */;
 			buildSettings = {
+				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = SandboxService.plist;
 				SDKROOT = macosx;
 			};
