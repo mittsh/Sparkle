@@ -1646,7 +1646,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				SDKROOT = macosx;
-				SYMROOT = "";
+				SYMROOT = build;
 			};
 			name = Debug;
 		};
@@ -1655,7 +1655,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				SDKROOT = macosx;
-				SYMROOT = "";
+				SYMROOT = build;
 			};
 			name = Release;
 		};
@@ -1761,7 +1761,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				SDKROOT = macosx;
-				SYMROOT = "";
+				SYMROOT = build;
 			};
 			name = "Release (GC dual-mode; 10.5+)";
 		};
