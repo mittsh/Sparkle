@@ -15,9 +15,6 @@
 		03B5E64E15D39E690038BB67 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B5E64D15D39E690038BB67 /* libcurl.dylib */; };
 		03B5E65A15D3DC3C0038BB67 /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 03B5E63A15D399500038BB67 /* com.andymatuschak.Sparkle.download-service.xpc */; };
 		03B5E65B15D3E0490038BB67 /* SUXPCURLDownload.m in Sources */ = {isa = PBXBuildFile; fileRef = 03B5E64A15D39CD90038BB67 /* SUXPCURLDownload.m */; };
-		03B807A91880011C000A905E /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* Sparkle.framework */; };
-		03B807AA1880011E000A905E /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B887B5E1517F3AB000BB292 /* com.andymatuschak.Sparkle.install-service.xpc */; };
-		03B807AB18800120000A905E /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 03B5E63A15D399500038BB67 /* com.andymatuschak.Sparkle.download-service.xpc */; };
 		3772FEA913DE0B6B00F79537 /* SUVersionDisplayProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 3772FEA813DE0B6B00F79537 /* SUVersionDisplayProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		525A2790133D6AE900FD8D70 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 525A278F133D6AE900FD8D70 /* Cocoa.framework */; };
 		525A27A0133D6B9700FD8D70 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 525A278F133D6AE900FD8D70 /* Cocoa.framework */; };
@@ -212,18 +209,6 @@
 			files = (
 				0305627915D2A73D00B43EF8 /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */,
 				03B5E65A15D3DC3C0038BB67 /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		03B807A818800117000A905E /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = $SRCROOT/build;
-			dstSubfolderSpec = 0;
-			files = (
-				03B807A91880011C000A905E /* Sparkle.framework in CopyFiles */,
-				03B807AA1880011E000A905E /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */,
-				03B807AB18800120000A905E /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1064,7 +1049,6 @@
 				8DC2EF520486A6940098B216 /* Resources */,
 				8DC2EF540486A6940098B216 /* Sources */,
 				8DC2EF560486A6940098B216 /* Frameworks */,
-				03B807A818800117000A905E /* CopyFiles */,
 			);
 			buildRules = (
 			);
