@@ -560,9 +560,8 @@
 		03B5E63C15D399500038BB67 /* Downloading XPC Service */ = {
 			isa = PBXGroup;
 			children = (
-				03B5E64315D399500038BB67 /* download_service.m */,
-				03B5E64915D39CD90038BB67 /* SUXPCURLDownload.h */,
-				03B5E64A15D39CD90038BB67 /* SUXPCURLDownload.m */,
+				AEC9BF73188FCA7300249BBD /* Service */,
+				AEC9BF74188FCA8500249BBD /* Interface */,
 				03B5E63D15D399500038BB67 /* Supporting Files */,
 			);
 			path = "Downloading XPC Service";
@@ -846,6 +845,23 @@
 				8B887B8F15180773000BB292 /* SandboxService.plist */,
 			);
 			name = Service;
+			sourceTree = "<group>";
+		};
+		AEC9BF73188FCA7300249BBD /* Service */ = {
+			isa = PBXGroup;
+			children = (
+				03B5E64315D399500038BB67 /* download_service.m */,
+			);
+			name = Service;
+			sourceTree = "<group>";
+		};
+		AEC9BF74188FCA8500249BBD /* Interface */ = {
+			isa = PBXGroup;
+			children = (
+				03B5E64915D39CD90038BB67 /* SUXPCURLDownload.h */,
+				03B5E64A15D39CD90038BB67 /* SUXPCURLDownload.m */,
+			);
+			name = Interface;
 			sourceTree = "<group>";
 		};
 		FA1941C40D94A6EA00DD942E /* Configurations */ = {
@@ -1608,7 +1624,6 @@
 			baseConfigurationReference = FA1941CA0D94A70100DD942E /* ConfigFrameworkDebug.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
-				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				COPY_PHASE_STRIP = NO;
 				INSTALL_PATH = "@loader_path/../Frameworks";
 			};
@@ -1619,7 +1634,6 @@
 			baseConfigurationReference = FA1941D50D94A70100DD942E /* ConfigFrameworkRelease.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
-				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				COPY_PHASE_STRIP = NO;
 				INSTALL_PATH = "@loader_path/../Frameworks";
 			};
@@ -1628,7 +1642,6 @@
 		1DEB91B208733DA50010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				SDKROOT = macosx;
 				SYMROOT = build;
 			};
@@ -1637,7 +1650,6 @@
 		1DEB91B308733DA50010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				SDKROOT = macosx;
 				SYMROOT = build;
 			};
@@ -1743,7 +1755,6 @@
 		61072EAD0DF263BD008FE88B /* Release (GC dual-mode; 10.5+) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				SDKROOT = macosx;
 				SYMROOT = build;
 			};
@@ -1754,7 +1765,6 @@
 			baseConfigurationReference = 61072EB20DF2640C008FE88B /* ConfigFrameworkReleaseGCSupport.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
-				CODE_SIGN_IDENTITY = "Developer ID Application: Aderstedt Software AB";
 				COPY_PHASE_STRIP = NO;
 				INSTALL_PATH = "@loader_path/../Frameworks";
 			};

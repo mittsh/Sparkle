@@ -73,7 +73,8 @@
 
 - (BOOL)updateInProgress;
 
-+ (BOOL)shouldUseXPC;
++ (BOOL)shouldUseXPCForInstall;
++ (BOOL)shouldUseXPCForDownload;
 
 @end
 

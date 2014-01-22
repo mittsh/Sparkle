@@ -65,7 +65,7 @@
     if (userAgentString)
         [request setValue:userAgentString forHTTPHeaderField:@"User-Agent"];
             
-    if ([SUUpdater shouldUseXPC]) {
+    if ([SUUpdater shouldUseXPCForDownload]) {
         download = (NSURLDownload *)[[SUXPCURLDownload alloc] initWithRequest:request delegate:self];
     } else {
         download = [[NSURLDownload alloc] initWithRequest:request delegate:self];
