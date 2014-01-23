@@ -198,20 +198,15 @@ static BOOL AuthorizationExecuteWithPrivilegesAndWait(AuthorizationRef authoriza
 		// quarantine to avoid a delay at launch, and to avoid
 		// presenting the user with a confusing trust dialog.
 		//
-		// This needs to be done after the application is moved to its
-		// new home with "mv" in case it's moved across filesystems: if
-		// that happens, "mv" actually performs a copy and may result
-		// in the application being quarantined.  It also needs to be
-		// done before "chown" changes ownership, because the ownership
-		// change will almost certainly make it impossible to change
-		// attributes to release the files from the quarantine.
+		// This needs to be done before "chown" changes ownership,
+		// because the ownership change will fail if the file is quarantined.
 		if (res)
 		{
 			SULog(@"releaseFromQuarantine");
 			if ([NSThread isMultiThreaded])
-				[self performSelectorOnMainThread:@selector(releaseFromQuarantine:) withObject:dst waitUntilDone:YES];
+				[self performSelectorOnMainThread:@selector(releaseFromQuarantine:) withObject:src waitUntilDone:YES];
 			else
-				[self releaseFromQuarantine:dst];
+				[self releaseFromQuarantine:src];
 		}
 		
 		if( res )	// Set permissions while it's still in source, so we have it with working and correct perms when it arrives at destination.
@@ -255,6 +250,24 @@ static BOOL AuthorizationExecuteWithPrivilegesAndWait(AuthorizationRef authoriza
 		
 		AuthorizationFree(auth, 0);
 		
+		// If the currently-running application is trusted, the new
+		// version should be trusted as well.  Remove it from the
+		// quarantine to avoid a delay at launch, and to avoid
+		// presenting the user with a confusing trust dialog.
+		//
+		// This needs to be done after the application is moved to its
+		// new home with "mv" in case it's moved across filesystems: if
+		// that happens, "mv" actually performs a copy and may result
+		// in the application being quarantined.
+        if (res)
+		{
+			SULog(@"releaseFromQuarantine after installing");
+			if ([NSThread isMultiThreaded])
+				[self performSelectorOnMainThread:@selector(releaseFromQuarantine:) withObject:dst waitUntilDone:YES];
+			else
+				[self releaseFromQuarantine:dst];
+		}
+
 		if (!res)
 		{
 			// Something went wrong somewhere along the way, but we're not sure exactly where.
