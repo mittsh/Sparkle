@@ -208,7 +208,10 @@ static BOOL AuthorizationExecuteWithPrivilegesAndWait(AuthorizationRef authoriza
 		if (res)
 		{
 			SULog(@"releaseFromQuarantine");
-			[self performSelectorOnMainThread:@selector(releaseFromQuarantine:) withObject:dst waitUntilDone:YES];
+			if ([NSThread isMultiThreaded])
+				[self performSelectorOnMainThread:@selector(releaseFromQuarantine:) withObject:dst waitUntilDone:YES];
+			else
+				[self releaseFromQuarantine:dst];
 		}
 		
 		if( res )	// Set permissions while it's still in source, so we have it with working and correct perms when it arrives at destination.
