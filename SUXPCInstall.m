@@ -7,10 +7,10 @@
 //
 
 #import <xpc/xpc.h>
-#import "SUXPC.h"
+#import "SUXPCInstall.h"
 
 
-@implementation SUXPC
+@implementation SUXPCInstall
 
 + (xpc_connection_t)getSandboxXPCService {
     __block xpc_connection_t serviceConnection =

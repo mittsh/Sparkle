@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface SUXPC : NSObject
+@interface SUXPCInstall : NSObject
 
 + (void)copyPathWithAuthentication:(NSString *)src overPath:(NSString *)dst temporaryName:(NSString *)tmp completionHandler:(void (^)(NSError *error))completionHandler;
 + (void)launchTaskWithLaunchPath:(NSString *)path arguments:(NSArray *)arguments completionHandler: (void (^)(void))completionHandler ;
