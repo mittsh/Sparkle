@@ -8,19 +8,21 @@
 
 #import <xpc/xpc.h>
 #import "SUXPCInstall.h"
-
+#import "SULog.h"
 
 @implementation SUXPCInstall
 
-+ (xpc_connection_t)getSandboxXPCService {
++ (xpc_connection_t)_createInstallXPCService
+{
+	// Create the XPC service
     __block xpc_connection_t serviceConnection =
     xpc_connection_create("com.andymatuschak.Sparkle.install-service", dispatch_get_main_queue());
     
     if (!serviceConnection) {
-        NSLog(@"Can't connect to XPC service");
-        return (NULL);
+        SULog(@"Can't connect to XPC service");
     }
     
+	// Handle events
     xpc_connection_set_event_handler(serviceConnection, ^(xpc_object_t event) {
         xpc_type_t type = xpc_get_type(event);
         
@@ -32,17 +34,22 @@
                 // canceled the service; we can do any cleanup of appliation
                 // state at this point.
                 xpc_release(serviceConnection);
+				serviceConnection = NULL;
             }
         }
     });
     
     // Need to resume the service in order for it to process messages.
-    xpc_connection_resume(serviceConnection);
-    return (serviceConnection);
+	if (serviceConnection) {
+		xpc_connection_resume(serviceConnection);
+	}
+	
+    return serviceConnection;
 }
 
-+ (void)copyPathWithAuthentication:(NSString *)src overPath:(NSString *)dst temporaryName:(NSString *)tmp completionHandler:(void (^)(NSError *error))completionHandler {
-    xpc_connection_t connection = [self getSandboxXPCService];
++ (void)copyPathWithAuthentication:(NSString *)src overPath:(NSString *)dst temporaryName:(NSString *)tmp completionHandler:(void (^)(NSError *error))completionHandler
+{
+    xpc_connection_t connection = [self _createInstallXPCService];
 
 	xpc_object_t message = xpc_dictionary_create(NULL, NULL, 0);
 	xpc_dictionary_set_string(message, "id", "copy_path");
@@ -71,8 +78,9 @@
     });
 }
 
-+ (void)launchTaskWithLaunchPath:(NSString *)path arguments:(NSArray *)arguments completionHandler: (void (^)(void))completionHandler {
-    xpc_connection_t connection = [self getSandboxXPCService];
++ (void)launchTaskWithLaunchPath:(NSString *)path arguments:(NSArray *)arguments completionHandler: (void (^)(void))completionHandler
+{
+    xpc_connection_t connection = [self _createInstallXPCService];
 	
 	xpc_object_t message = xpc_dictionary_create(NULL, NULL, 0);
 	xpc_dictionary_set_string(message, "id", "launch_task");

@@ -319,8 +319,7 @@
 #else
 	[[NSFileManager defaultManager] createDirectoryAtPath: [targetPath stringByDeletingLastPathComponent] withIntermediateDirectories: YES attributes: [NSDictionary dictionary] error: &error];
 #endif
-
-	// Only the paranoid survive: if there's already a stray copy of relaunch there, we would have problems.
+	
 	if( [SUUpdater shouldUseXPCForInstall] )
     {
         [SUXPCInstall copyPathWithAuthentication:relaunchPathToCopy overPath:targetPath temporaryName:nil completionHandler:^(NSError *xpcError) {

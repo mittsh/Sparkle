@@ -810,6 +810,7 @@
 			children = (
 				8B887B801517F8B4000BB292 /* Service */,
 				8B887B631517F3AC000BB292 /* Interface */,
+				AE5E6BE918911C1400EF02DF /* Supporting Files */,
 			);
 			name = "Installation XPC Service";
 			path = Update;
@@ -828,9 +829,16 @@
 			isa = PBXGroup;
 			children = (
 				8B887B8D15180767000BB292 /* install_service.m */,
-				8B887B8F15180773000BB292 /* InstallService-InfoPlist.plist */,
 			);
 			name = Service;
+			sourceTree = "<group>";
+		};
+		AE5E6BE918911C1400EF02DF /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				8B887B8F15180773000BB292 /* InstallService-InfoPlist.plist */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		AEC9BF73188FCA7300249BBD /* Service */ = {
