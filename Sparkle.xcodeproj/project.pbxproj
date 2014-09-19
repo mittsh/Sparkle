@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0305627915D2A73D00B43EF8 /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B887B5E1517F3AB000BB292 /* com.andymatuschak.Sparkle.install-service.xpc */; };
+		0305627915D2A73D00B43EF8 /* com.andymatuschak.Sparkle.install-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B887B5E1517F3AB000BB292 /* com.andymatuschak.Sparkle.install-service.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		03B5E63B15D399500038BB67 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B887B601517F3AC000BB292 /* Foundation.framework */; };
 		03B5E64115D399500038BB67 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 03B5E63F15D399500038BB67 /* InfoPlist.strings */; };
 		03B5E64415D399500038BB67 /* download_service.m in Sources */ = {isa = PBXBuildFile; fileRef = 03B5E64315D399500038BB67 /* download_service.m */; };
 		03B5E64B15D39CD90038BB67 /* SUXPCURLDownload.h in Headers */ = {isa = PBXBuildFile; fileRef = 03B5E64915D39CD90038BB67 /* SUXPCURLDownload.h */; };
 		03B5E64E15D39E690038BB67 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B5E64D15D39E690038BB67 /* libcurl.dylib */; };
-		03B5E65A15D3DC3C0038BB67 /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 03B5E63A15D399500038BB67 /* com.andymatuschak.Sparkle.download-service.xpc */; };
+		03B5E65A15D3DC3C0038BB67 /* com.andymatuschak.Sparkle.download-service.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 03B5E63A15D399500038BB67 /* com.andymatuschak.Sparkle.download-service.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		03B5E65B15D3E0490038BB67 /* SUXPCURLDownload.m in Sources */ = {isa = PBXBuildFile; fileRef = 03B5E64A15D39CD90038BB67 /* SUXPCURLDownload.m */; };
 		3772FEA913DE0B6B00F79537 /* SUVersionDisplayProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 3772FEA813DE0B6B00F79537 /* SUVersionDisplayProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		525A2790133D6AE900FD8D70 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 525A278F133D6AE900FD8D70 /* Cocoa.framework */; };
@@ -87,7 +87,7 @@
 		61299B3609CB04E000B7442F /* Sparkle.h in Headers */ = {isa = PBXBuildFile; fileRef = 61299B3509CB04E000B7442F /* Sparkle.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		612DCBAF0D488BC60015DBEA /* SUUpdatePermissionPrompt.h in Headers */ = {isa = PBXBuildFile; fileRef = 612DCBAD0D488BC60015DBEA /* SUUpdatePermissionPrompt.h */; settings = {ATTRIBUTES = (); }; };
 		612DCBB00D488BC60015DBEA /* SUUpdatePermissionPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 612DCBAE0D488BC60015DBEA /* SUUpdatePermissionPrompt.m */; };
-		61407C390A4099050009F71F /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* Sparkle.framework */; };
+		61407C390A4099050009F71F /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6158A1C5137904B300487EC1 /* SUUpdater_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 6158A1C4137904B300487EC1 /* SUUpdater_Private.h */; };
 		615AE3D00D64DC40001CA7BD /* SUModelTranslation.plist in Resources */ = {isa = PBXBuildFile; fileRef = 615AE3CF0D64DC40001CA7BD /* SUModelTranslation.plist */; };
 		6160E7E10D3B4A8800E9CD71 /* NTSynchronousTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 610EC1C00CF3914D00AE239E /* NTSynchronousTask.h */; settings = {ATTRIBUTES = (); }; };
@@ -1106,7 +1106,7 @@
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0610;
 			};
 			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "Sparkle" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1570,7 +1570,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1604,7 +1603,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1631,7 +1629,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1659,7 +1656,7 @@
 			baseConfigurationReference = FA1941CA0D94A70100DD942E /* ConfigFrameworkDebug.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				SDKROOT = macosx10.10;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -1668,14 +1665,15 @@
 			baseConfigurationReference = FA1941D50D94A70100DD942E /* ConfigFrameworkRelease.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				SDKROOT = macosx10.10;
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
 		1DEB91B208733DA50010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				SDKROOT = macosx10.10;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = Debug;
@@ -1683,7 +1681,7 @@
 		1DEB91B308733DA50010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				SDKROOT = macosx10.10;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = Release;
@@ -1764,7 +1762,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5D06E8F20FD68D21005AE3F6 /* ConfigBinaryDeltaDebug.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
 		};
@@ -1772,7 +1769,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5D06E8F30FD68D21005AE3F6 /* ConfigBinaryDeltaRelease.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;
 		};
@@ -1780,14 +1776,13 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5D06E8F30FD68D21005AE3F6 /* ConfigBinaryDeltaRelease.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = "Release (GC dual-mode; 10.5+)";
 		};
 		61072EAD0DF263BD008FE88B /* Release (GC dual-mode; 10.5+) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				SDKROOT = macosx10.10;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = "Release (GC dual-mode; 10.5+)";
@@ -1797,7 +1792,7 @@
 			baseConfigurationReference = 61072EB20DF2640C008FE88B /* ConfigFrameworkReleaseGCSupport.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				SDKROOT = macosx10.10;
+				SDKROOT = macosx;
 			};
 			name = "Release (GC dual-mode; 10.5+)";
 		};
@@ -1853,7 +1848,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8B887B711517F447000BB292 /* ConfigServiceDebug.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = "InstallService-InfoPlist.plist";
 				SDKROOT = macosx;
@@ -1864,7 +1859,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8B887B721517F447000BB292 /* ConfigServiceRelease.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = "InstallService-InfoPlist.plist";
 				SDKROOT = macosx;
@@ -1875,7 +1870,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8B887B721517F447000BB292 /* ConfigServiceRelease.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = "InstallService-InfoPlist.plist";
 				SDKROOT = macosx;
