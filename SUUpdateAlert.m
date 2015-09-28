@@ -98,8 +98,8 @@
 	[releaseNotesView setPreferencesIdentifier:[SPARKLE_BUNDLE bundleIdentifier]];
 	[[releaseNotesView preferences] setStandardFontFamily:[[NSFont systemFontOfSize:8] familyName]];
 	[[releaseNotesView preferences] setDefaultFontSize:(int)[NSFont systemFontSizeForControlSize:NSSmallControlSize]];
-	[releaseNotesView setFrameLoadDelegate:self];
-	[releaseNotesView setPolicyDelegate:self];
+	[releaseNotesView setFrameLoadDelegate:(id)self];
+	[releaseNotesView setPolicyDelegate:(id)self];
 	
 	// Stick a nice big spinner in the middle of the web view until the page is loaded.
 	NSRect frame = [[releaseNotesView superview] frame];
