@@ -90,21 +90,15 @@
     return [cachePath stringByAppendingPathComponent:@SPARKLE_BUNDLE_IDENTIFIER];
 }
 
-+ (void)emptyCacheDirectory
-{
-    NSString* downloadCachePath = [self downloadCachePath];
-    [[NSFileManager defaultManager] removeItemAtPath:downloadCachePath error:NULL];
-}
-
-+ (void)createCacheDirectory
-{
-    //
-}
-
 + (NSString*)moveToCacheDirectoryDownloadPath:(NSString*)downloadFilePath downloadFileName:(NSString*)downloadFileName error:(NSError*__autoreleasing*)__error
 {
     NSString *downloadCachePath = [self downloadCachePath];
     NSString *currentDirectoryName = [NSString stringWithFormat:@"update_%@", @SPARKLE_BUNDLE_IDENTIFIER];
+
+    // Delete old downloads
+    [[NSFileManager defaultManager] removeItemAtPath:downloadCachePath error:NULL];
+
+    // Find an appropriate directory and create it
     NSString* currentDirectory = [downloadCachePath stringByAppendingPathComponent:currentDirectoryName];
     NSUInteger i = 1;
     while ([[NSFileManager defaultManager] fileExistsAtPath:currentDirectory] && i <= 999) {
@@ -114,11 +108,14 @@
         // @TODO raise an error
         return nil;
     }
+
+    // Move downloaded file to its new location
     NSString* newFilePath = [currentDirectory stringByAppendingPathComponent:downloadFileName];
     if (![[NSFileManager defaultManager] moveItemAtPath:downloadFilePath toPath:newFilePath error:NULL]) {
         // @TODO raise an error
         return nil;
     }
+
     return newFilePath;
 }
 

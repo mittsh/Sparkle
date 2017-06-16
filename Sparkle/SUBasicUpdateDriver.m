@@ -274,6 +274,7 @@
 
 - (NSString *)appCachePath
 {
+    // @TODO remove
     NSArray *cachePaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString *cachePath = nil;
     if ([cachePaths count]) {
@@ -298,14 +299,6 @@
 
 - (void)downloadUpdate
 {
-//    // Clear cache directory so that downloads can't possibly accumulate inside
-//    NSString *appCachePath = [self appCachePath];
-//    if ([[NSFileManager defaultManager] fileExistsAtPath:appCachePath]) {
-//        [[NSFileManager defaultManager] removeItemAtPath:appCachePath error:NULL];
-//    }
-//
-//    self.download = [[NSURLDownload alloc] initWithRequest:request delegate:self];
-
     // Call delegate
     id<SUUpdaterPrivate> updater = self.updater;
     id<SUUpdaterDelegate> updaterDelegate = updater.delegate;
@@ -350,32 +343,6 @@
         [self didDownloadTotalBytesWritten:totalBytesWritten totalBytesExpectedToWrite:totalBytesExpectedToWrite];
     });
 }
-
-//- (void)download:(NSURLDownload *)__unused d decideDestinationWithSuggestedFilename:(NSString *)name
-//{
-//    NSString *downloadFileName = [NSString stringWithFormat:@"%@ %@", [self.host name], [self.updateItem versionString]];
-//    
-//    NSString *appCachePath = [self appCachePath];
-//    
-//    self.tempDir = [appCachePath stringByAppendingPathComponent:downloadFileName];
-//    int cnt = 1;
-//	while ([[NSFileManager defaultManager] fileExistsAtPath:self.tempDir] && cnt <= 999)
-//	{
-//        self.tempDir = [appCachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@ %d", downloadFileName, cnt++]];
-//    }
-//
-//    // Create the temporary directory if necessary.
-//    BOOL success = [[NSFileManager defaultManager] createDirectoryAtPath:self.tempDir withIntermediateDirectories:YES attributes:nil error:NULL];
-//	if (!success)
-//	{
-//        // Okay, something's really broken with this user's file structure.
-//        [self.download cancel];
-//        [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUTemporaryDirectoryError userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Can't make a temporary directory for the update download at %@.", self.tempDir] }]];
-//    }
-//
-//    self.downloadPath = [self.tempDir stringByAppendingPathComponent:name];
-//    [self.download setDestination:self.downloadPath allowOverwrite:YES];
-//}
 
 - (void)didDownloadTotalBytesWritten:(uint64_t)totalBytesWritten totalBytesExpectedToWrite:(uint64_t)totalBytesExpectedToWrite
 {
