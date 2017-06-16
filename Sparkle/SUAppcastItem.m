@@ -45,7 +45,7 @@
 @synthesize title;
 @synthesize versionString;
 @synthesize osString;
-@synthesize propertiesDictionary;
+@synthesize propertiesDictionary = _propertiesDictionary;
 
 - (BOOL)isDeltaUpdate
 {
@@ -70,7 +70,7 @@
 
 - (instancetype)initWithDictionary:(NSDictionary *)dict
 {
-    return [self initWithDictionary:dict failureReason:nil];
+    return [self initWithDictionary:dict failureReason:NULL];
 }
 
 - (instancetype)initWithDictionary:(NSDictionary *)dict failureReason:(NSString *__autoreleasing *)error
@@ -110,7 +110,7 @@
             return nil;
         }
 
-        propertiesDictionary = [[NSMutableDictionary alloc] initWithDictionary:dict];
+        _propertiesDictionary = [dict copy];
         self.title = [dict objectForKey:SURSSElementTitle];
         self.dateString = [dict objectForKey:SURSSElementPubDate];
         self.itemDescription = [dict objectForKey:SURSSElementDescription];
@@ -208,6 +208,27 @@
         }
     }
     return self;
+}
+
+#pragma mark - NSSecureCoding
+
++ (BOOL)supportsSecureCoding
+{
+    return YES;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder
+{
+    NSDictionary *dict = [aDecoder decodeObjectOfClasses:[NSSet setWithArray:@[[NSDictionary class], [NSArray class], [NSString class], [NSURL class]]] forKey:@"dict"];
+    if (dict == nil) {
+        return nil;
+    }
+    return [self initWithDictionary:dict];
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+    [aCoder encodeObject:self.propertiesDictionary forKey:@"dict"];
 }
 
 @end

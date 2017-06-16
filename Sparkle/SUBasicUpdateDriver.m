@@ -25,6 +25,8 @@
 #import "SUAppcast.h"
 #import "SUAppcastItem.h"
 
+#import "SUInstallerServiceProtocol.h"
+
 @interface SUBasicUpdateDriver ()
 
 @property (strong) SUAppcastItem *updateItem;
@@ -36,6 +38,10 @@
 @property (copy) NSString *relaunchPath;
 
 @property (nonatomic) SUUpdateValidator *updateValidator;
+
+@property (strong) NSXPCInterface *installerServiceInterface;
+@property (strong) NSXPCConnection *installerServiceConnection;
+@property (strong) id installerServiceProxy;
 
 @end
 
@@ -51,62 +57,98 @@
 
 @synthesize updateValidator = _updateValidator;
 
+@synthesize installerServiceInterface = _installerServiceInterface;
+@synthesize installerServiceConnection = _installerServiceConnection;
+@synthesize installerServiceProxy = _installerServiceProxy;
+
+- (void)xpcCheckConnection
+{
+    if (self.installerServiceConnection == nil) {
+        [self xpcStartConnection];
+    }
+}
+
+- (void)xpcStartConnection
+{
+    NSXPCInterface *installerServiceInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceProtocol)];
+    NSXPCConnection *connection = [[NSXPCConnection alloc] initWithServiceName:@"com.andymatuschak.Sparkle.install-service"];
+    connection.remoteObjectInterface = installerServiceInterface;
+    [connection resume];
+
+    self.installerServiceInterface = installerServiceInterface;
+    self.installerServiceConnection = connection;
+    self.installerServiceProxy = [connection remoteObjectProxyWithErrorHandler:^(NSError * _Nonnull error) {
+        NSLog(@"XPC Connection Error: %@", error);
+    }];
+}
+
 - (void)checkForUpdatesAtURL:(NSURL *)URL host:(SUHost *)aHost
 {
     [super checkForUpdatesAtURL:URL host:aHost];
-	if ([aHost isRunningOnReadOnlyVolume])
+	if (aHost.runningOnReadOnlyVolume)
 	{
         [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SURunningFromDiskImageError userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"%1$@ can't be updated, because it was opened from a read-only or a temporary location. Use Finder to copy %1$@ to the Applications folder, relaunch it from there, and try again.", nil), [aHost name]] }]];
         return;
     }
 
-    SUAppcast *appcast = [[SUAppcast alloc] init];
-
     id<SUUpdaterPrivate> updater = self.updater;
-    [appcast setUserAgentString:[updater userAgentString]];
-    [appcast setHttpHeaders:[updater httpHeaders]];
-    [appcast fetchAppcastFromURL:URL inBackground:self.downloadsAppcastInBackground completionBlock:^(NSError *error) {
-        if (error) {
-            [self abortUpdateWithError:error];
-        } else {
-            [self appcastDidFinishLoading:appcast];
-        }
+    NSString* userAgentString = updater.userAgentString;
+    NSDictionary* httpHeaders = updater.httpHeaders;
+    NSMutableDictionary<NSString*,id>* options = [@{} mutableCopy];
+    options[SUInstallerServiceProtocolOptionsDownloadInBackground] = @(self.downloadsAppcastInBackground);
+    if (userAgentString != nil) {
+        options[SUInstallerServiceProtocolOptionsUserAgent] = userAgentString;
+    }
+    if (httpHeaders != nil) {
+        options[SUInstallerServiceProtocolOptionsHTTPHeaders] = httpHeaders;
+    }
+
+    [self xpcCheckConnection];
+    [self.installerServiceProxy checkForUpdatesAtURL:URL options:[options copy] completionBlock:^(BOOL success, SUAppcast * appcast, NSError * error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (success) {
+                [self appcastDidFinishLoading:appcast];
+            } else {
+                [self abortUpdateWithError:error];
+            }
+        });
     }];
 }
 
 - (id<SUVersionComparison>)versionComparator
 {
     id<SUVersionComparison> comparator = nil;
-    id<SUUpdaterPrivate> updater = self.updater;
+    SUUpdater<SUUpdaterPrivate>* updater = self.updater;
+    id<SUUpdaterDelegate> updaterDelegate = ((id<SUUpdaterPrivate>)updater).delegate;
     
     // Give the delegate a chance to provide a custom version comparator
-    if ([[updater delegate] respondsToSelector:@selector(versionComparatorForUpdater:)]) {
-        comparator = [[updater delegate] versionComparatorForUpdater:self.updater];
+    if ([updaterDelegate respondsToSelector:@selector(versionComparatorForUpdater:)]) {
+        comparator = [updaterDelegate versionComparatorForUpdater:updater];
     }
 
     // If we don't get a comparator from the delegate, use the default comparator
-    if (!comparator) {
+    if (comparator == nil) {
         comparator = [[SUStandardVersionComparator alloc] init];
     }
 
     return comparator;
 }
 
-+ (SUAppcastItem *)bestItemFromAppcastItems:(NSArray *)appcastItems getDeltaItem:(SUAppcastItem * __autoreleasing *)deltaItem withHostVersion:(NSString *)hostVersion comparator:(id<SUVersionComparison>)comparator
++ (SUAppcastItem *)bestItemFromAppcastItems:(NSArray<SUAppcastItem*>*)appcastItems getDeltaItem:(SUAppcastItem * __autoreleasing *)__deltaItem withHostVersion:(NSString *)hostVersion comparator:(id<SUVersionComparison>)comparator
 {
     SUAppcastItem *item = nil;
     for(SUAppcastItem *candidate in appcastItems) {
-        if ([[self class] hostSupportsItem:candidate]) {
-            if (!item || [comparator compareVersion:item.versionString toVersion:candidate.versionString] == NSOrderedAscending) {
+        if ([self hostSupportsItem:candidate]) {
+            if (item == nil || [comparator compareVersion:item.versionString toVersion:candidate.versionString] == NSOrderedAscending) {
                 item = candidate;
             }
         }
     }
     
-    if (item && deltaItem) {
-        SUAppcastItem *deltaUpdateItem = [[item deltaUpdates] objectForKey:hostVersion];
-        if (deltaUpdateItem && [[self class] hostSupportsItem:deltaUpdateItem]) {
-            *deltaItem = deltaUpdateItem;
+    if (item != nil && __deltaItem != NULL) {
+        SUAppcastItem *deltaUpdateItem = [item.deltaUpdates objectForKey:hostVersion];
+        if (deltaUpdateItem != nil && [self hostSupportsItem:deltaUpdateItem]) {
+            *__deltaItem = deltaUpdateItem;
         }
     }
     
@@ -154,37 +196,33 @@
     return ui && [[self class] hostSupportsItem:ui] && [self isItemNewer:ui] && ![self itemContainsSkippedVersion:ui];
 }
 
-- (void)appcastDidFinishLoading:(SUAppcast *)ac
+- (void)appcastDidFinishLoading:(SUAppcast *)appcast
 {
-    id<SUUpdaterPrivate> updater = self.updater;
-    if ([[updater delegate] respondsToSelector:@selector(updater:didFinishLoadingAppcast:)]) {
-        [[updater delegate] updater:self.updater didFinishLoadingAppcast:ac];
+    SUUpdater<SUUpdaterPrivate>* updater = self.updater;
+    id<SUUpdaterDelegate> updaterDelegate = ((id<SUUpdaterPrivate>)updater).delegate;
+    if ([updaterDelegate respondsToSelector:@selector(updater:didFinishLoadingAppcast:)]) {
+        [updaterDelegate updater:self.updater didFinishLoadingAppcast:appcast];
     }
 
-    NSDictionary *userInfo = @{ SUUpdaterAppcastNotificationKey: ac };
+    NSDictionary *userInfo = @{ SUUpdaterAppcastNotificationKey: appcast };
     [[NSNotificationCenter defaultCenter] postNotificationName:SUUpdaterDidFinishLoadingAppCastNotification object:self.updater userInfo:userInfo];
 
     SUAppcastItem *item = nil;
 
     // Now we have to find the best valid update in the appcast.
-    if ([[updater delegate] respondsToSelector:@selector(bestValidUpdateInAppcast:forUpdater:)]) // Does the delegate want to handle it?
-    {
-        item = [[updater delegate] bestValidUpdateInAppcast:ac forUpdater:self.updater];
-    }
-    
-    if (item != nil) // Does the delegate want to handle it?
-    {
-        if ([item isDeltaUpdate]) {
-            self.nonDeltaUpdateItem = [[updater delegate] bestValidUpdateInAppcast:[ac copyWithoutDeltaUpdates] forUpdater:self.updater];
+    // Does the delegate want to handle it?
+    if ([updaterDelegate respondsToSelector:@selector(bestValidUpdateInAppcast:forUpdater:)]) {
+        item = [updaterDelegate bestValidUpdateInAppcast:appcast forUpdater:self.updater];
+        if (item != nil && item.isDeltaUpdate) {
+            self.nonDeltaUpdateItem = [updaterDelegate bestValidUpdateInAppcast:[appcast copyWithoutDeltaUpdates] forUpdater:self.updater];
         }
     }
-    else // If not, we'll take care of it ourselves.
-    {
-        // Find the best supported update
+
+    // Find the best supported update ourselves
+    if (item == nil) {
         SUAppcastItem *deltaUpdateItem = nil;
-        item = [[self class] bestItemFromAppcastItems:ac.items getDeltaItem:&deltaUpdateItem withHostVersion:self.host.version comparator:[self versionComparator]];
-        
-        if (item && deltaUpdateItem) {
+        item = [[self class] bestItemFromAppcastItems:appcast.items getDeltaItem:&deltaUpdateItem withHostVersion:self.host.version comparator:[self versionComparator]];
+        if (item != nil && deltaUpdateItem != nil) {
             self.nonDeltaUpdateItem = item;
             item = deltaUpdateItem;
         }
@@ -203,15 +241,14 @@
 {
     assert(self.updateItem);
     
-    id<SUUpdaterPrivate> updater = self.updater;
+    SUUpdater<SUUpdaterPrivate>* updater = self.updater;
+    id<SUUpdaterDelegate> updaterDelegate = ((id<SUUpdaterPrivate>)updater).delegate;
 
-    if ([[updater delegate] respondsToSelector:@selector(updater:didFindValidUpdate:)]) {
-        [[updater delegate] updater:self.updater didFindValidUpdate:self.updateItem];
+    if ([updaterDelegate respondsToSelector:@selector(updater:didFindValidUpdate:)]) {
+        [updaterDelegate updater:self.updater didFindValidUpdate:self.updateItem];
     }
 
-    [[NSNotificationCenter defaultCenter] postNotificationName:SUUpdaterDidFindValidUpdateNotification
-                                                        object:self.updater
-                                                      userInfo:@{ SUUpdaterAppcastItemNotificationKey: self.updateItem }];
+    [[NSNotificationCenter defaultCenter] postNotificationName:SUUpdaterDidFindValidUpdateNotification object:updater userInfo:@{ SUUpdaterAppcastItemNotificationKey: self.updateItem }];
     [self downloadUpdate];
 }
 

@@ -16,7 +16,8 @@
 #endif
 #import "SUExport.h"
 
-SU_EXPORT @interface SUAppcastItem : NSObject
+SU_EXPORT @interface SUAppcastItem : NSObject <NSSecureCoding>
+
 @property (copy, readonly) NSString *title;
 @property (copy, readonly) NSString *dateString;
 @property (copy, readonly) NSString *itemDescription;

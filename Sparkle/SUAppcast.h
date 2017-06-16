@@ -9,30 +9,21 @@
 #ifndef SUAPPCAST_H
 #define SUAPPCAST_H
 
-#if __has_feature(modules)
 @import Foundation;
-#else
-#import <Foundation/Foundation.h>
-#endif
 #import "SUExport.h"
+
+@class SUAppcastItem;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class SUAppcastItem;
-SU_EXPORT @interface SUAppcast : NSObject<NSURLDownloadDelegate>
+SU_EXPORT @interface SUAppcast : NSObject <NSSecureCoding>
 
-@property (copy, nullable) NSString *userAgentString;
+- (nullable instancetype)initWithAppcastXMLData:(NSData*)appcastXMLData error:(NSError*__autoreleasing _Nullable * _Nullable)__error;
 
-#if __has_feature(objc_generics)
-@property (copy, nullable) NSDictionary<NSString *, NSString *> *httpHeaders;
-#else
-@property (copy, nullable) NSDictionary *httpHeaders;
-#endif
+@property (readonly, copy, nullable) NSArray<SUAppcastItem*>*items;
 
-- (void)fetchAppcastFromURL:(NSURL *)url inBackground:(BOOL)bg completionBlock:(void (^)(NSError *_Nullable))err;
 - (SUAppcast *)copyWithoutDeltaUpdates;
 
-@property (readonly, copy, nullable) NSArray *items;
 @end
 
 NS_ASSUME_NONNULL_END
