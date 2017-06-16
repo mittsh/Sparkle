@@ -1,3 +1,4 @@
+
 //
 //  SUBasicUpdateDriver.m
 //  Sparkle
@@ -8,11 +9,9 @@
 
 #import "SUBasicUpdateDriver.h"
 
-#import "SUUnarchiverProtocol.h"
 #import "SUHost.h"
 #import "SUOperatingSystem.h"
 #import "SUStandardVersionComparator.h"
-#import "SUUnarchiver.h"
 #import "SUConstants.h"
 #import "SULog.h"
 #import "SUBinaryDeltaCommon.h"
@@ -83,6 +82,8 @@
     [self.installerServiceConnection invalidate];
     self.installerServiceConnection = nil;
 }
+
+#pragma mark - Load Appcast
 
 - (void)checkForUpdatesAtURL:(NSURL *)URL host:(SUHost *)aHost
 {
@@ -293,6 +294,8 @@
     return cachePath;
 }
 
+#pragma mark - Download Update
+
 - (void)downloadUpdate
 {
 //    // Clear cache directory so that downloads can't possibly accumulate inside
@@ -404,40 +407,39 @@
     [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUDownloadError userInfo:[userInfo copy]]];
 }
 
+#pragma mark - Extract Update
+
 - (void)extractUpdate
 {
-    id<SUUpdaterPrivate> updater = self.updater;
-    id<SUUnarchiverProtocol> unarchiver = [SUUnarchiver unarchiverForPath:self.downloadPath updatingHostBundlePath:self.host.bundlePath decryptionPassword:updater.decryptionPassword];
-    
-    BOOL success;
-    if (!unarchiver) {
-        SULog(SULogLevelError, @"Error: No valid unarchiver for %@!", self.downloadPath);
-        
-        success = NO;
-    } else {
-        // Currently unsafe archives are the only case where we can prevalidate before extraction, but that could change in the future
-        BOOL needsPrevalidation = [[unarchiver class] unsafeIfArchiveIsNotValidated];
-        
-        self.updateValidator = [[SUUpdateValidator alloc] initWithDownloadPath:self.downloadPath dsaSignature:self.updateItem.DSASignature host:self.host performingPrevalidation:needsPrevalidation];
-        
-        success = self.updateValidator.canValidate;
-    }
-    
-    if (!success) {
-        NSError *reason = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update."}];
-        [self unarchiverDidFailWithError:reason];
-    } else {
-        [unarchiver unarchiveWithCompletionBlock:^(NSError *err){
-            if (err) {
-                [self unarchiverDidFailWithError:err];
-                return;
-            }
-            
-            [self unarchiverDidFinish:nil];
-        } progressBlock:^(double progress) {
-            [self unarchiver:nil extractedProgress:progress];
-        }];
-    }
+    // Start extract in XPC service
+    [self xpcCheckConnection];
+    [self.installerServiceProxy extractUpdateWithLocalIdentifier:self.updateItem.localIdentifier hostBundlePath:self.host.bundlePath];
+}
+
+- (void)extractUpdateProgress:(double)progress
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self unarchiver:nil extractedProgress:progress];
+    });
+}
+
+- (void)extractUpdateDidComplete
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self unarchiverDidFinish:nil];
+    });
+}
+
+- (void)extractUpdateDidFailWithError:(NSError *)error
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.updateValidator = nil;
+        if (self.updateItem.isDeltaUpdate) {
+            [self failedToApplyDeltaUpdate];
+            return;
+        }
+        [self abortUpdateWithError:error];
+    });
 }
 
 - (void)failedToApplyDeltaUpdate
@@ -460,19 +462,6 @@
     assert(self.updateItem);
     
     [self installWithToolAndRelaunch:YES];
-}
-
-- (void)unarchiverDidFailWithError:(NSError *)err
-{
-    // No longer needed
-    self.updateValidator = nil;
-    
-    if ([self.updateItem isDeltaUpdate]) {
-        [self failedToApplyDeltaUpdate];
-        return;
-    }
-    
-    [self abortUpdateWithError:err];
 }
 
 - (void)installWithToolAndRelaunch:(BOOL)relaunch

@@ -79,6 +79,49 @@
     self.session = nil;
 }
 
+#pragma mark - App Cache Directory
+
++ (NSString*)downloadCachePath
+{
+    NSString *cachePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject;
+    if (cachePath == nil) {
+        cachePath = NSTemporaryDirectory();
+    }
+    return [cachePath stringByAppendingPathComponent:@SPARKLE_BUNDLE_IDENTIFIER];
+}
+
++ (void)emptyCacheDirectory
+{
+    NSString* downloadCachePath = [self downloadCachePath];
+    [[NSFileManager defaultManager] removeItemAtPath:downloadCachePath error:NULL];
+}
+
++ (void)createCacheDirectory
+{
+    //
+}
+
++ (NSString*)moveToCacheDirectoryDownloadPath:(NSString*)downloadFilePath downloadFileName:(NSString*)downloadFileName error:(NSError*__autoreleasing*)__error
+{
+    NSString *downloadCachePath = [self downloadCachePath];
+    NSString *currentDirectoryName = [NSString stringWithFormat:@"update_%@", @SPARKLE_BUNDLE_IDENTIFIER];
+    NSString* currentDirectory = [downloadCachePath stringByAppendingPathComponent:currentDirectoryName];
+    NSUInteger i = 1;
+    while ([[NSFileManager defaultManager] fileExistsAtPath:currentDirectory] && i <= 999) {
+        currentDirectory = [downloadCachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_%ld", currentDirectoryName, i++]];
+    }
+    if (![[NSFileManager defaultManager] createDirectoryAtPath:currentDirectory withIntermediateDirectories:YES attributes:nil error:NULL]) {
+        // @TODO raise an error
+        return nil;
+    }
+    NSString* newFilePath = [currentDirectory stringByAppendingPathComponent:downloadFileName];
+    if (![[NSFileManager defaultManager] moveItemAtPath:downloadFilePath toPath:newFilePath error:NULL]) {
+        // @TODO raise an error
+        return nil;
+    }
+    return newFilePath;
+}
+
 #pragma mark - NSURLSessionDownloadDelegate
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
@@ -101,9 +144,20 @@
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
+    // We must move the file in this method or it will be deleted
+    NSError* error = nil;
+    NSString* downloadedFilePath = [[self class] moveToCacheDirectoryDownloadPath:location.path downloadFileName:self.appcastItem.fileURL.lastPathComponent error:&error];
+    if (downloadedFilePath == nil) {
+        dispatch_async(self.callbackQueue, ^{
+            self.updateBlock(nil, 0, 0, error);
+        });
+        return;
+    }
+
+    // Clear and call success callback
     [self clear];
     dispatch_async(self.callbackQueue, ^{
-        self.updateBlock(location, (uint64_t)downloadTask.countOfBytesReceived, (uint64_t)downloadTask.countOfBytesExpectedToReceive, nil);
+        self.updateBlock(downloadedFilePath, (uint64_t)downloadTask.countOfBytesReceived, (uint64_t)downloadTask.countOfBytesExpectedToReceive, nil);
     });
 }
 

@@ -24,6 +24,9 @@ typedef void(^SUInstallerServiceCheckForUpdatesBlock)(SUAppcast* _Nullable appca
 - (void)checkForUpdatesAtURL:(NSURL *)URL options:(NSDictionary<NSString*,id>*)options completionBlock:(SUInstallerServiceCheckForUpdatesBlock)completionBlock;
 
 - (void)downloadUpdateWithLocalIdentifier:(NSString*)localIdentifier options:(NSDictionary<NSString*,id>*)options;
+
+// @TODO: security around host path
+- (void)extractUpdateWithLocalIdentifier:(NSString *)localIdentifier hostBundlePath:(NSString*)hostBundlePath;
     
 @end
 
@@ -32,6 +35,10 @@ typedef void(^SUInstallerServiceCheckForUpdatesBlock)(SUAppcast* _Nullable appca
 - (void)downloadUpdateDidComplete;
 - (void)downloadUpdateDidFailWithError:(NSError*)error;
 - (void)downloadUpdateTotalBytesWritten:(uint64_t)totalBytesWritten totalBytesExpectedToWrite:(uint64_t)totalBytesExpectedToWrite;
+
+- (void)extractUpdateDidComplete;
+- (void)extractUpdateDidFailWithError:(NSError*)error;
+- (void)extractUpdateProgress:(double)progress;
 
 @end
 

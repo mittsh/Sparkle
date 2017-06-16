@@ -12,7 +12,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef void(^SUAppcastItemDownloaderUpdateBlock)(NSURL* _Nullable location, uint64_t totalBytesWritten, uint64_t totalBytesExpectedToWrite, NSError* _Nullable error);
+typedef void(^SUAppcastItemDownloaderUpdateBlock)(NSString* _Nullable downloadedFilePath, uint64_t totalBytesWritten, uint64_t totalBytesExpectedToWrite, NSError* _Nullable error);
 
 @interface SUAppcastItemDownloader : NSObject
 
