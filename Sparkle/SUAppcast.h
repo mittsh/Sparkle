@@ -22,6 +22,8 @@ SU_EXPORT @interface SUAppcast : NSObject <NSSecureCoding>
 
 @property (readonly, copy, nullable) NSArray<SUAppcastItem*>*items;
 
+- (nullable SUAppcastItem*)itemWithLocalIdentifier:(NSString*)localIdentifier;
+
 - (SUAppcast *)copyWithoutDeltaUpdates;
 
 @end

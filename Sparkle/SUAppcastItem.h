@@ -18,6 +18,8 @@
 
 SU_EXPORT @interface SUAppcastItem : NSObject <NSSecureCoding>
 
+@property (copy, readonly) NSString *localIdentifier;
+
 @property (copy, readonly) NSString *title;
 @property (copy, readonly) NSString *dateString;
 @property (copy, readonly) NSString *itemDescription;

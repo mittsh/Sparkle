@@ -9,6 +9,15 @@
 #import <Foundation/Foundation.h>
 #import "SUInstallerServiceProtocol.h"
 
-// This object implements the protocol which we have defined. It provides the actual behavior for the service. It is 'exported' by the service to make it available to the process hosting the service over an NSXPCConnection.
+NS_ASSUME_NONNULL_BEGIN
+
 @interface SUInstallerService : NSObject <SUInstallerServiceProtocol>
+
+- (instancetype)init NS_UNAVAILABLE;
+- (instancetype)initWithConnection:(NSXPCConnection*)connection;
+
+@property (nonatomic, weak, readonly) NSXPCConnection* connection;
+
 @end
+
+NS_ASSUME_NONNULL_END

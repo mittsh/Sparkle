@@ -14,32 +14,25 @@
 
 @class SUAppcast;
 
-// The protocol that this service will vend as its API. This header file will also need to be visible to the process hosting the service.
+NS_ASSUME_NONNULL_BEGIN
+
+typedef void(^SUInstallerServiceCheckForUpdatesBlock)(SUAppcast* _Nullable appcast, NSError* _Nullable error);
+
 @protocol SUInstallerServiceProtocol
 
-// Replace the API of this protocol with an API appropriate to the service you are vending.
-- (void)upperCaseString:(NSString *)aString withReply:(void (^)(NSString *))reply;
-
 // @TODO: security around the URL used here
-- (void)checkForUpdatesAtURL:(NSURL *)URL options:(NSDictionary<NSString*,id>*)options completionBlock:(void (^)(BOOL, SUAppcast*, NSError*))completionBlock;
+- (void)checkForUpdatesAtURL:(NSURL *)URL options:(NSDictionary<NSString*,id>*)options completionBlock:(SUInstallerServiceCheckForUpdatesBlock)completionBlock;
+
+- (void)downloadUpdateWithLocalIdentifier:(NSString*)localIdentifier options:(NSDictionary<NSString*,id>*)options;
     
 @end
 
-/*
- To use the service from an application or other process, use NSXPCConnection to establish a connection to the service by doing something like this:
+@protocol SUInstallerServiceAppProtocol
 
-     _connectionToService = [[NSXPCConnection alloc] initWithServiceName:@"com.andymatuschak.Sparkle.Installation-XPC-Service"];
-     _connectionToService.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceProtocol)];
-     [_connectionToService resume];
+- (void)downloadUpdateDidComplete;
+- (void)downloadUpdateDidFailWithError:(NSError*)error;
+- (void)downloadUpdateTotalBytesWritten:(uint64_t)totalBytesWritten totalBytesExpectedToWrite:(uint64_t)totalBytesExpectedToWrite;
 
-Once you have a connection to the service, you can use it like this:
+@end
 
-     [[_connectionToService remoteObjectProxy] upperCaseString:@"hello" withReply:^(NSString *aString) {
-         // We have received a response. Update our text field, but do it on the main thread.
-         NSLog(@"Result string was: %@", aString);
-     }];
-
- And, when you are finished with the service, clean up the connection like this:
-
-     [_connectionToService invalidate];
-*/
+NS_ASSUME_NONNULL_END

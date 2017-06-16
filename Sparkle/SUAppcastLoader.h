@@ -14,8 +14,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SUAppcastLoader : NSObject
 
-@property (copy, nullable) NSString *userAgentString;
-@property (copy, nullable) NSDictionary<NSString *, NSString *> *httpHeaders;
+@property (nonatomic, strong, nullable) NSString *userAgentString;
+@property (nonatomic, strong, nullable) NSDictionary<NSString *, NSString *> *httpHeaders;
 
 - (void)fetchAppcastFromURL:(NSURL *)url inBackground:(BOOL)bg completionBlock:(void (^)(BOOL, SUAppcast* _Nullable, NSError *_Nullable))completionBlock;
 

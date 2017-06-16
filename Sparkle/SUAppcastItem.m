@@ -46,6 +46,7 @@
 @synthesize versionString;
 @synthesize osString;
 @synthesize propertiesDictionary = _propertiesDictionary;
+@synthesize localIdentifier = _localIdentifier;
 
 - (BOOL)isDeltaUpdate
 {
@@ -206,6 +207,8 @@
             }
             self.deltaUpdates = deltas;
         }
+        
+        _localIdentifier = [NSUUID UUID].UUIDString;
     }
     return self;
 }
@@ -220,15 +223,21 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder
 {
     NSDictionary *dict = [aDecoder decodeObjectOfClasses:[NSSet setWithArray:@[[NSDictionary class], [NSArray class], [NSString class], [NSURL class]]] forKey:@"dict"];
-    if (dict == nil) {
+    NSString* localIdentifier = [aDecoder decodeObjectOfClass:[NSString class] forKey:@"localIdentifier"];
+    if (dict == nil || localIdentifier == nil) {
         return nil;
     }
-    return [self initWithDictionary:dict];
+    self = [self initWithDictionary:dict];
+    if (self) {
+        _localIdentifier = localIdentifier;
+    }
+    return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
     [aCoder encodeObject:self.propertiesDictionary forKey:@"dict"];
+    [aCoder encodeObject:self.localIdentifier forKey:@"localIdentifier"];
 }
 
 @end

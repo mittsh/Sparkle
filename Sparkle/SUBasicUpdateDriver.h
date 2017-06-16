@@ -12,10 +12,9 @@
 #import "SUUpdateDriver.h"
 
 @class SUAppcast, SUAppcastItem, SUHost;
-@interface SUBasicUpdateDriver : SUUpdateDriver <NSURLDownloadDelegate>
+@interface SUBasicUpdateDriver : SUUpdateDriver
 
 @property (strong, readonly) SUAppcastItem *updateItem;
-@property (strong, readonly) NSURLDownload *download;
 @property (copy, readonly) NSString *downloadPath;
 
 - (void)checkForUpdatesAtURL:(NSURL *)URL host:(SUHost *)host;
@@ -29,9 +28,7 @@
 - (void)didNotFindUpdate;
 
 - (void)downloadUpdate;
-- (void)download:(NSURLDownload *)d decideDestinationWithSuggestedFilename:(NSString *)name;
-- (void)downloadDidFinish:(NSURLDownload *)d;
-- (void)download:(NSURLDownload *)download didFailWithError:(NSError *)error;
+- (void)didDownloadTotalBytesWritten:(uint64_t)totalBytesWritten totalBytesExpectedToWrite:(uint64_t)totalBytesExpectedToWrite;
 
 - (void)extractUpdate;
 - (void)failedToApplyDeltaUpdate;

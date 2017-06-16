@@ -133,9 +133,8 @@ SU_EXPORT extern NSString *const SUUpdaterAppcastNotificationKey;
  
  \param updater The SUUpdater instance.
  \param item The appcast item corresponding to the update that is proposed to be downloaded.
- \param request The mutable URL request that will be used to download the update.
  */
-- (void)updater:(SUUpdater *)updater willDownloadUpdate:(SUAppcastItem *)item withRequest:(NSMutableURLRequest *)request;
+- (void)updater:(SUUpdater *)updater willDownloadUpdate:(SUAppcastItem *)item;
 
 /*!
  Called after the specified update failed to download.

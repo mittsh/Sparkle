@@ -269,6 +269,7 @@
 		AE1861FA1EF3E1D7001E0138 /* SUAppcast.m in Sources */ = {isa = PBXBuildFile; fileRef = 61B5FB9509C4F04600B25A18 /* SUAppcast.m */; };
 		AE1861FB1EF3E1DB001E0138 /* SUAppcastItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 61B5FC5409C5182000B25A18 /* SUAppcastItem.m */; };
 		AE1861FE1EF3EF6E001E0138 /* SUAppcastLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = AE1861FD1EF3EF6E001E0138 /* SUAppcastLoader.m */; };
+		AE1862011EF42541001E0138 /* SUAppcastItemDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = AE1862001EF42541001E0138 /* SUAppcastItemDownloader.m */; };
 		C23E885B1BE7B24F0050BB73 /* SparkleTestCodeSignApp.enc.dmg in Resources */ = {isa = PBXBuildFile; fileRef = C23E88591BE7AF890050BB73 /* SparkleTestCodeSignApp.enc.dmg */; };
 		E1545EC51E1D7E0200FAECE8 /* SUTouchBarButtonGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = E1545EC31E1D7E0200FAECE8 /* SUTouchBarButtonGroup.h */; };
 		E1545EC61E1D7E0200FAECE8 /* SUTouchBarButtonGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = E1545EC41E1D7E0200FAECE8 /* SUTouchBarButtonGroup.m */; };
@@ -833,6 +834,8 @@
 		AE1861F11EF3DAAA001E0138 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AE1861FC1EF3EF6E001E0138 /* SUAppcastLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SUAppcastLoader.h; sourceTree = "<group>"; };
 		AE1861FD1EF3EF6E001E0138 /* SUAppcastLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SUAppcastLoader.m; sourceTree = "<group>"; };
+		AE1861FF1EF42541001E0138 /* SUAppcastItemDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SUAppcastItemDownloader.h; sourceTree = "<group>"; };
+		AE1862001EF42541001E0138 /* SUAppcastItemDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SUAppcastItemDownloader.m; sourceTree = "<group>"; };
 		C23E88591BE7AF890050BB73 /* SparkleTestCodeSignApp.enc.dmg */ = {isa = PBXFileReference; lastKnownFileType = file; path = SparkleTestCodeSignApp.enc.dmg; sourceTree = "<group>"; };
 		E1545EC31E1D7E0200FAECE8 /* SUTouchBarButtonGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SUTouchBarButtonGroup.h; sourceTree = "<group>"; };
 		E1545EC41E1D7E0200FAECE8 /* SUTouchBarButtonGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SUTouchBarButtonGroup.m; sourceTree = "<group>"; };
@@ -1204,6 +1207,8 @@
 			children = (
 				AE1861FC1EF3EF6E001E0138 /* SUAppcastLoader.h */,
 				AE1861FD1EF3EF6E001E0138 /* SUAppcastLoader.m */,
+				AE1861FF1EF42541001E0138 /* SUAppcastItemDownloader.h */,
+				AE1862001EF42541001E0138 /* SUAppcastItemDownloader.m */,
 				61B5FB9409C4F04600B25A18 /* SUAppcast.h */,
 				61B5FB9509C4F04600B25A18 /* SUAppcast.m */,
 				61B5FC5309C5182000B25A18 /* SUAppcastItem.h */,
@@ -2137,6 +2142,7 @@
 				AE1861FA1EF3E1D7001E0138 /* SUAppcast.m in Sources */,
 				AE1861FB1EF3E1DB001E0138 /* SUAppcastItem.m in Sources */,
 				AE1861F01EF3DAAA001E0138 /* main.m in Sources */,
+				AE1862011EF42541001E0138 /* SUAppcastItemDownloader.m in Sources */,
 				AE1861EE1EF3DAAA001E0138 /* SUInstallerService.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2469,6 +2475,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 149B78631B7D3A0C00D7D62C /* ConfigCommonCoverage.xcconfig */;
 			buildSettings = {
+				GCC_WARN_UNUSED_PARAMETER = NO;
 			};
 			name = Coverage;
 		};
@@ -2549,6 +2556,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FA1941CF0D94A70100DD942E /* ConfigCommonDebug.xcconfig */;
 			buildSettings = {
+				GCC_WARN_UNUSED_PARAMETER = NO;
 			};
 			name = Debug;
 		};
@@ -2556,6 +2564,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FA1941CC0D94A70100DD942E /* ConfigCommonRelease.xcconfig */;
 			buildSettings = {
+				GCC_WARN_UNUSED_PARAMETER = NO;
 			};
 			name = Release;
 		};

@@ -27,10 +27,9 @@
 
 #import "SUInstallerServiceProtocol.h"
 
-@interface SUBasicUpdateDriver ()
+@interface SUBasicUpdateDriver () <SUInstallerServiceAppProtocol>
 
 @property (strong) SUAppcastItem *updateItem;
-@property (strong) NSURLDownload *download;
 @property (copy) NSString *downloadPath;
 
 @property (strong) SUAppcastItem *nonDeltaUpdateItem;
@@ -39,7 +38,6 @@
 
 @property (nonatomic) SUUpdateValidator *updateValidator;
 
-@property (strong) NSXPCInterface *installerServiceInterface;
 @property (strong) NSXPCConnection *installerServiceConnection;
 @property (strong) id installerServiceProxy;
 
@@ -48,7 +46,6 @@
 @implementation SUBasicUpdateDriver
 
 @synthesize updateItem;
-@synthesize download;
 @synthesize downloadPath;
 
 @synthesize nonDeltaUpdateItem;
@@ -57,7 +54,6 @@
 
 @synthesize updateValidator = _updateValidator;
 
-@synthesize installerServiceInterface = _installerServiceInterface;
 @synthesize installerServiceConnection = _installerServiceConnection;
 @synthesize installerServiceProxy = _installerServiceProxy;
 
@@ -70,16 +66,22 @@
 
 - (void)xpcStartConnection
 {
-    NSXPCInterface *installerServiceInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceProtocol)];
     NSXPCConnection *connection = [[NSXPCConnection alloc] initWithServiceName:@"com.andymatuschak.Sparkle.install-service"];
-    connection.remoteObjectInterface = installerServiceInterface;
-    [connection resume];
-
-    self.installerServiceInterface = installerServiceInterface;
+    connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceProtocol)];
+    connection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceAppProtocol)];
+    connection.exportedObject = self;
     self.installerServiceConnection = connection;
     self.installerServiceProxy = [connection remoteObjectProxyWithErrorHandler:^(NSError * _Nonnull error) {
         NSLog(@"XPC Connection Error: %@", error);
     }];
+    [connection resume];
+}
+
+- (void)xpcInvalidateConnection
+{
+    // @TODO: we must call this
+    [self.installerServiceConnection invalidate];
+    self.installerServiceConnection = nil;
 }
 
 - (void)checkForUpdatesAtURL:(NSURL *)URL host:(SUHost *)aHost
@@ -104,9 +106,9 @@
     }
 
     [self xpcCheckConnection];
-    [self.installerServiceProxy checkForUpdatesAtURL:URL options:[options copy] completionBlock:^(BOOL success, SUAppcast * appcast, NSError * error) {
+    [self.installerServiceProxy checkForUpdatesAtURL:URL options:[options copy] completionBlock:^(SUAppcast * appcast, NSError * error) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (success) {
+            if (appcast != nil) {
                 [self appcastDidFinishLoading:appcast];
             } else {
                 [self abortUpdateWithError:error];
@@ -293,92 +295,113 @@
 
 - (void)downloadUpdate
 {
-    // Clear cache directory so that downloads can't possibly accumulate inside
-    NSString *appCachePath = [self appCachePath];
-    if ([[NSFileManager defaultManager] fileExistsAtPath:appCachePath]) {
-        [[NSFileManager defaultManager] removeItemAtPath:appCachePath error:NULL];
-    }
+//    // Clear cache directory so that downloads can't possibly accumulate inside
+//    NSString *appCachePath = [self appCachePath];
+//    if ([[NSFileManager defaultManager] fileExistsAtPath:appCachePath]) {
+//        [[NSFileManager defaultManager] removeItemAtPath:appCachePath error:NULL];
+//    }
+//
+//    self.download = [[NSURLDownload alloc] initWithRequest:request delegate:self];
 
+    // Call delegate
     id<SUUpdaterPrivate> updater = self.updater;
-
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[self.updateItem fileURL]];
-    if (self.downloadsUpdatesInBackground) {
-        request.networkServiceType = NSURLNetworkServiceTypeBackground;
+    id<SUUpdaterDelegate> updaterDelegate = updater.delegate;
+    if ([updaterDelegate respondsToSelector:@selector(updater:willDownloadUpdate:)]) {
+        [updaterDelegate updater:self.updater willDownloadUpdate:self.updateItem];
     }
 
-    [request setValue:[updater userAgentString] forHTTPHeaderField:@"User-Agent"];
-    if ([[updater delegate] respondsToSelector:@selector(updater:willDownloadUpdate:withRequest:)]) {
-        [[updater delegate] updater:self.updater
-                      willDownloadUpdate:self.updateItem
-                             withRequest:request];
+    // Create options
+    NSString* userAgentString = updater.userAgentString;
+    NSDictionary* httpHeaders = updater.httpHeaders;
+    NSMutableDictionary<NSString*,id>* options = [@{} mutableCopy];
+    options[SUInstallerServiceProtocolOptionsDownloadInBackground] = @(self.downloadsAppcastInBackground);
+    if (userAgentString != nil) {
+        options[SUInstallerServiceProtocolOptionsUserAgent] = userAgentString;
     }
-    self.download = [[NSURLDownload alloc] initWithRequest:request delegate:self];
+    if (httpHeaders != nil) {
+        options[SUInstallerServiceProtocolOptionsHTTPHeaders] = httpHeaders;
+    }
+
+    // Start download in XPC service
+    [self xpcCheckConnection];
+    [self.installerServiceProxy downloadUpdateWithLocalIdentifier:self.updateItem.localIdentifier options:[options copy]];
 }
 
-- (void)download:(NSURLDownload *)__unused d decideDestinationWithSuggestedFilename:(NSString *)name
+- (void)downloadUpdateDidComplete
 {
-    NSString *downloadFileName = [NSString stringWithFormat:@"%@ %@", [self.host name], [self.updateItem versionString]];
-    
-    NSString *appCachePath = [self appCachePath];
-    
-    self.tempDir = [appCachePath stringByAppendingPathComponent:downloadFileName];
-    int cnt = 1;
-	while ([[NSFileManager defaultManager] fileExistsAtPath:self.tempDir] && cnt <= 999)
-	{
-        self.tempDir = [appCachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@ %d", downloadFileName, cnt++]];
-    }
-
-    // Create the temporary directory if necessary.
-    BOOL success = [[NSFileManager defaultManager] createDirectoryAtPath:self.tempDir withIntermediateDirectories:YES attributes:nil error:NULL];
-	if (!success)
-	{
-        // Okay, something's really broken with this user's file structure.
-        [self.download cancel];
-        [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUTemporaryDirectoryError userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Can't make a temporary directory for the update download at %@.", self.tempDir] }]];
-    }
-
-    self.downloadPath = [self.tempDir stringByAppendingPathComponent:name];
-    [self.download setDestination:self.downloadPath allowOverwrite:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self extractUpdate];
+    });
 }
 
-- (void)downloadDidFinish:(NSURLDownload *)__unused d
+- (void)downloadUpdateDidFailWithError:(NSError *)error
 {
-    assert(self.updateItem);
-
-    [self extractUpdate];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self downloadDidFailWithError:error];
+    });
 }
 
-- (void)download:(NSURLDownload *)__unused download didFailWithError:(NSError *)error
+- (void)downloadUpdateTotalBytesWritten:(uint64_t)totalBytesWritten totalBytesExpectedToWrite:(uint64_t)totalBytesExpectedToWrite
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self didDownloadTotalBytesWritten:totalBytesWritten totalBytesExpectedToWrite:totalBytesExpectedToWrite];
+    });
+}
+
+//- (void)download:(NSURLDownload *)__unused d decideDestinationWithSuggestedFilename:(NSString *)name
+//{
+//    NSString *downloadFileName = [NSString stringWithFormat:@"%@ %@", [self.host name], [self.updateItem versionString]];
+//    
+//    NSString *appCachePath = [self appCachePath];
+//    
+//    self.tempDir = [appCachePath stringByAppendingPathComponent:downloadFileName];
+//    int cnt = 1;
+//	while ([[NSFileManager defaultManager] fileExistsAtPath:self.tempDir] && cnt <= 999)
+//	{
+//        self.tempDir = [appCachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@ %d", downloadFileName, cnt++]];
+//    }
+//
+//    // Create the temporary directory if necessary.
+//    BOOL success = [[NSFileManager defaultManager] createDirectoryAtPath:self.tempDir withIntermediateDirectories:YES attributes:nil error:NULL];
+//	if (!success)
+//	{
+//        // Okay, something's really broken with this user's file structure.
+//        [self.download cancel];
+//        [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUTemporaryDirectoryError userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Can't make a temporary directory for the update download at %@.", self.tempDir] }]];
+//    }
+//
+//    self.downloadPath = [self.tempDir stringByAppendingPathComponent:name];
+//    [self.download setDestination:self.downloadPath allowOverwrite:YES];
+//}
+
+- (void)didDownloadTotalBytesWritten:(uint64_t)totalBytesWritten totalBytesExpectedToWrite:(uint64_t)totalBytesExpectedToWrite
+{
+    // nothing to do (to be overridden)
+}
+
+- (void)downloadDidFailWithError:(NSError *)error
 {
     NSURL *failingUrl = [error.userInfo objectForKey:NSURLErrorFailingURLErrorKey];
-    if (!failingUrl) {
-        failingUrl = [self.updateItem fileURL];
+    if (failingUrl == nil) {
+        failingUrl = self.updateItem.fileURL;
     }
-    
+
+    // Call delegate
     id<SUUpdaterPrivate> updater = self.updater;
-
-    if ([[updater delegate] respondsToSelector:@selector(updater:failedToDownloadUpdate:error:)]) {
-        [[updater delegate] updater:self.updater
-                  failedToDownloadUpdate:self.updateItem
-                                   error:error];
+    id<SUUpdaterDelegate> updaterDelegate = updater.delegate;
+    if ([updaterDelegate respondsToSelector:@selector(updater:failedToDownloadUpdate:error:)]) {
+        [updaterDelegate updater:(SUUpdater*)updater failedToDownloadUpdate:self.updateItem error:error];
     }
 
+    // Abort update with error
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:@{
         NSLocalizedDescriptionKey: SULocalizedString(@"An error occurred while downloading the update. Please try again later.", nil),
         NSUnderlyingErrorKey: error,
     }];
-    if (failingUrl) {
+    if (failingUrl != nil) {
         [userInfo setObject:failingUrl forKey:NSURLErrorFailingURLErrorKey];
     }
-
-    [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUDownloadError userInfo:userInfo]];
-}
-
-- (BOOL)download:(NSURLDownload *)__unused download shouldDecodeSourceDataOfMIMEType:(NSString *)encodingType
-{
-    // We don't want the download system to extract our gzips.
-    // Note that we use a substring matching here instead of direct comparison because the docs say "application/gzip" but the system *uses* "application/x-gzip". This is a documentation bug.
-    return ([encodingType rangeOfString:@"gzip"].location == NSNotFound);
+    [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUDownloadError userInfo:[userInfo copy]]];
 }
 
 - (void)extractUpdate
@@ -673,9 +696,10 @@
             errorToDisplay = [errorToDisplay.userInfo objectForKey:NSUnderlyingErrorKey];
         } while(--finiteRecursion && errorToDisplay);
     }
-    if (self.download) {
-        [self.download cancel];
-    }
+// @TODO cancel
+//    if (self.download) {
+//        [self.download cancel];
+//    }
 
     // Notify host app that update has aborted
     id<SUUpdaterPrivate> updater = self.updater;

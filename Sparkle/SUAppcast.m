@@ -233,6 +233,20 @@
     return [nodes objectAtIndex:i];
 }
 
+#pragma mark - Item Lookup
+
+- (SUAppcastItem *)itemWithLocalIdentifier:(NSString *)localIdentifier
+{
+    __block SUAppcastItem* item = nil;
+    [self.items enumerateObjectsUsingBlock:^(SUAppcastItem * _Nonnull anItem, NSUInteger idx, BOOL * _Nonnull stop) {
+        if ([anItem.localIdentifier.uppercaseString isEqualToString:localIdentifier.uppercaseString]) {
+            item = anItem;
+            *stop = YES;
+        }
+    }];
+    return item;
+}
+
 #pragma mark - NSSecureCoding
 
 + (BOOL)supportsSecureCoding
