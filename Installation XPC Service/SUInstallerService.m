@@ -52,6 +52,8 @@
     return self;
 }
 
+#pragma mark - Check for Updates
+
 - (void)checkForUpdatesAtURL:(NSURL *)URL options:(NSDictionary<NSString *,id> *)options completionBlock:(SUInstallerServiceCheckForUpdatesBlock)completionBlock
 {
     dispatch_async(self.serviceQueue, ^{
@@ -66,6 +68,8 @@
         }];
     });
 }
+
+#pragma mark - Download Update
 
 - (void)downloadUpdateWithLocalIdentifier:(NSString *)localIdentifier options:(nonnull NSDictionary<NSString *,id> *)options
 {
@@ -98,6 +102,8 @@
     });
 }
 
+#pragma mark - Extract
+
 - (void)extractUpdateWithLocalIdentifier:(NSString *)localIdentifier hostBundlePath:(NSString*)hostBundlePath
 {
     dispatch_async(self.serviceQueue, ^{
@@ -105,14 +111,70 @@
     });
 }
 
+- (void)_extractWithLocalIdentifier:(NSString *)localIdentifier hostBundlePath:(NSString*)hostBundlePath
+{
+    SUHost* host = [[SUHost alloc] initWithBundle:[NSBundle bundleWithPath:hostBundlePath]];
+    if (hostBundlePath == nil || host == nil) {
+        NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update (host bundle not found)."}];
+        [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
+        return;
+    }
+
+    NSString* downloadedFilePath = self.downloadedFilePath;
+    SUAppcastItem* item = [self.appcast itemWithLocalIdentifier:localIdentifier];
+    if (downloadedFilePath == nil || item == nil || hostBundlePath == nil) {
+        NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update (update item not found)."}];
+        [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
+        return;
+    }
+
+    id<SUUnarchiverProtocol> unarchiver = [SUUnarchiver unarchiverForPath:downloadedFilePath updatingHostBundlePath:hostBundlePath decryptionPassword:nil];
+    if (unarchiver == nil) {
+        NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update (no valid archiver found)."}];
+        [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
+        return;
+    }
+
+    // Currently unsafe archives are the only case where we can prevalidate before extraction, but that could change in the future
+    BOOL needsPrevalidation = [[unarchiver class] unsafeIfArchiveIsNotValidated];
+    self.updateValidator = [[SUUpdateValidator alloc] initWithDownloadPath:downloadedFilePath dsaSignature:item.DSASignature host:host performingPrevalidation:needsPrevalidation];
+    if (!self.updateValidator.canValidate) {
+        NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update."}];
+        [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
+        self.updateValidator = nil;
+        return;
+    }
+
+    // Perform unarchiving
+    [unarchiver unarchiveWithCompletionBlock:^(NSError *error){
+        dispatch_async(self.serviceQueue, ^{
+            if (error != nil) {
+                [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
+                self.updateValidator = nil;
+                return;
+            }
+
+            // Keep hostBundlePath for later
+            self.hostBundlePath = hostBundlePath;
+
+            // Call host app
+            [self.connection.remoteObjectProxy extractUpdateDidComplete];
+        });
+    } progressBlock:^(double progress) {
+        dispatch_async(self.serviceQueue, ^{
+            [self.connection.remoteObjectProxy extractUpdateProgress:progress];
+        });
+    }];
+}
+
+#pragma mark - Install
+
 - (void)installWithLocalIdentifier:(NSString *)localIdentifier relaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI hostAppPid:(uint64_t)hostAppPid
 {
     dispatch_async(self.serviceQueue, ^{
         [self _installWithLocalIdentifier:localIdentifier relaunch:relaunch displayingUserInterface:showUI hostAppPid:hostAppPid];
     });
 }
-
-#pragma mark - Install
 
 - (void)_installWithLocalIdentifier:(NSString *)localIdentifier relaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI hostAppPid:(uint64_t)hostAppPid
 {
@@ -293,64 +355,6 @@
         }
     }
     return YES;
-}
-
-#pragma mark - Extract
-
-- (void)_extractWithLocalIdentifier:(NSString *)localIdentifier hostBundlePath:(NSString*)hostBundlePath
-{
-    SUHost* host = [[SUHost alloc] initWithBundle:[NSBundle bundleWithPath:hostBundlePath]];
-    if (hostBundlePath == nil || host == nil) {
-        NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update (host bundle not found)."}];
-        [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
-        return;
-    }
-
-    NSString* downloadedFilePath = self.downloadedFilePath;
-    SUAppcastItem* item = [self.appcast itemWithLocalIdentifier:localIdentifier];
-    if (downloadedFilePath == nil || item == nil || hostBundlePath == nil) {
-        NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update (update item not found)."}];
-        [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
-        return;
-    }
-
-    id<SUUnarchiverProtocol> unarchiver = [SUUnarchiver unarchiverForPath:downloadedFilePath updatingHostBundlePath:hostBundlePath decryptionPassword:nil];
-    if (unarchiver == nil) {
-        NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update (no valid archiver found)."}];
-        [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
-        return;
-    }
-
-    // Currently unsafe archives are the only case where we can prevalidate before extraction, but that could change in the future
-    BOOL needsPrevalidation = [[unarchiver class] unsafeIfArchiveIsNotValidated];
-    self.updateValidator = [[SUUpdateValidator alloc] initWithDownloadPath:downloadedFilePath dsaSignature:item.DSASignature host:host performingPrevalidation:needsPrevalidation];
-    if (!self.updateValidator.canValidate) {
-        NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUUnarchivingError userInfo:@{NSLocalizedDescriptionKey: @"Failed to extract update."}];
-        [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
-        self.updateValidator = nil;
-        return;
-    }
-
-    // Perform unarchiving
-    [unarchiver unarchiveWithCompletionBlock:^(NSError *error){
-        dispatch_async(self.serviceQueue, ^{
-            if (error != nil) {
-                [self.connection.remoteObjectProxy extractUpdateDidFailWithError:error];
-                self.updateValidator = nil;
-                return;
-            }
-
-            // Keep hostBundlePath for later
-            self.hostBundlePath = hostBundlePath;
-
-            // Call host app
-            [self.connection.remoteObjectProxy extractUpdateDidComplete];
-        });
-    } progressBlock:^(double progress) {
-        dispatch_async(self.serviceQueue, ^{
-            [self.connection.remoteObjectProxy extractUpdateProgress:progress];
-        });
-    }];
 }
 
 @end

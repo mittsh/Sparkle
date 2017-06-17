@@ -14,7 +14,7 @@
 @class SUAppcast, SUAppcastItem, SUHost;
 @interface SUBasicUpdateDriver : SUUpdateDriver
 
-@property (strong, readonly) SUAppcastItem *updateItem;
+@property (strong, nonatomic, readonly) SUAppcastItem *updateItem;
 
 - (void)checkForUpdatesAtURL:(NSURL *)URL host:(SUHost *)host;
 
@@ -38,9 +38,6 @@
 
 - (void)installWithToolAndRelaunch:(BOOL)relaunch;
 - (void)installWithToolAndRelaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI;
-- (void)installerForHost:(SUHost *)host failedWithError:(NSError *)error;
-
-- (void)cleanUpDownload;
 
 - (void)abortUpdate;
 - (void)abortUpdateWithError:(NSError *)error;

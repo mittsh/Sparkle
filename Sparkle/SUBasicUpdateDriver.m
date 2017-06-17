@@ -27,14 +27,11 @@
 
 @interface SUBasicUpdateDriver () <SUInstallerServiceAppProtocol>
 
-@property (strong) SUAppcastItem *updateItem;
-
-@property (strong) SUAppcastItem *nonDeltaUpdateItem;
-@property (copy) NSString *tempDir;
-@property (copy) NSString *relaunchPath;
-
-@property (strong) NSXPCConnection *installerServiceConnection;
-@property (strong) id installerServiceProxy;
+@property (strong, nonatomic) SUAppcastItem *nonDeltaUpdateItem;
+@property (strong, nonatomic) NSXPCConnection *installerServiceConnection;
+@property (strong, nonatomic) id installerServiceProxy;
+@property (strong, nonatomic, readwrite) SUAppcastItem *updateItem;
+@property (strong, nonatomic, readonly) id<SUVersionComparison> versionComparator;
 
 @end
 
@@ -43,8 +40,6 @@
 @synthesize updateItem;
 
 @synthesize nonDeltaUpdateItem;
-@synthesize tempDir;
-@synthesize relaunchPath;
 
 @synthesize installerServiceConnection = _installerServiceConnection;
 @synthesize installerServiceProxy = _installerServiceProxy;
@@ -151,45 +146,56 @@
     return item;
 }
 
-+ (BOOL)hostSupportsItem:(SUAppcastItem *)ui
++ (BOOL)hostSupportsItem:(SUAppcastItem *)item
 {
-    BOOL osOK = [ui isMacOsUpdate];
-	if (([ui minimumSystemVersion] == nil || [[ui minimumSystemVersion] isEqualToString:@""]) &&
-        ([ui maximumSystemVersion] == nil || [[ui maximumSystemVersion] isEqualToString:@""])) {
-        return osOK;
+    // Check that it's macOS compatible
+    if (!item.isMacOsUpdate) {
+        return NO;
     }
 
-    BOOL minimumVersionOK = TRUE;
-    BOOL maximumVersionOK = TRUE;
+    NSString *minimumSystemVersion = item.minimumSystemVersion;
+    NSString *maximumSystemVersion = item.maximumSystemVersion;
+
+    // If no minimum and maximum system version specified, it's good
+	if ((minimumSystemVersion == nil || [minimumSystemVersion isEqualToString:@""]) &&
+        (maximumSystemVersion == nil || [maximumSystemVersion isEqualToString:@""])) {
+        return YES;
+    }
+
+    BOOL minimumVersionOK = YES;
+    BOOL maximumVersionOK = YES;
 
     id<SUVersionComparison> versionComparator = [[SUStandardVersionComparator alloc] init];
+    NSString* systemVersionString = [SUOperatingSystem systemVersionString];
 
-    // Check minimum and maximum System Version
-    if ([ui minimumSystemVersion] != nil && ![[ui minimumSystemVersion] isEqualToString:@""]) {
-        minimumVersionOK = [versionComparator compareVersion:[ui minimumSystemVersion] toVersion:[SUOperatingSystem systemVersionString]] != NSOrderedDescending;
+    // Check minimum and maximum system version
+    if (minimumSystemVersion != nil && ![minimumSystemVersion isEqualToString:@""]) {
+        minimumVersionOK = [versionComparator compareVersion:minimumSystemVersion toVersion:systemVersionString] != NSOrderedDescending;
     }
-    if ([ui maximumSystemVersion] != nil && ![[ui maximumSystemVersion] isEqualToString:@""]) {
-        maximumVersionOK = [versionComparator compareVersion:[ui maximumSystemVersion] toVersion:[SUOperatingSystem systemVersionString]] != NSOrderedAscending;
+    if (maximumSystemVersion != nil && ![maximumSystemVersion isEqualToString:@""]) {
+        maximumVersionOK = [versionComparator compareVersion:maximumSystemVersion toVersion:systemVersionString] != NSOrderedAscending;
     }
 
-    return minimumVersionOK && maximumVersionOK && osOK;
+    return minimumVersionOK && maximumVersionOK;
 }
 
-- (BOOL)isItemNewer:(SUAppcastItem *)ui
+- (BOOL)isItemNewer:(SUAppcastItem *)item
 {
-    return [[self versionComparator] compareVersion:[self.host version] toVersion:[ui versionString]] == NSOrderedAscending;
+    return [self.versionComparator compareVersion:self.host.version toVersion:item.versionString] == NSOrderedAscending;
 }
 
-- (BOOL)itemContainsSkippedVersion:(SUAppcastItem *)ui
+- (BOOL)itemContainsSkippedVersion:(SUAppcastItem *)item
 {
-    NSString *skippedVersion = [self.host objectForUserDefaultsKey:SUSkippedVersionKey];
-	if (skippedVersion == nil) { return NO; }
-    return [[self versionComparator] compareVersion:[ui versionString] toVersion:skippedVersion] != NSOrderedDescending;
+    NSString* skippedVersion = [self.host objectForUserDefaultsKey:SUSkippedVersionKey];
+	if (skippedVersion == nil) {
+        return NO;
+    }
+    return [self.versionComparator compareVersion:item.versionString toVersion:skippedVersion] != NSOrderedDescending;
 }
 
-- (BOOL)itemContainsValidUpdate:(SUAppcastItem *)ui
+- (BOOL)itemContainsValidUpdate:(SUAppcastItem *)item
 {
-    return ui && [[self class] hostSupportsItem:ui] && [self isItemNewer:ui] && ![self itemContainsSkippedVersion:ui];
+    return item != nil && [[self class] hostSupportsItem:item] && [self isItemNewer:item] && ![self itemContainsSkippedVersion:item];
 }
 
 - (void)appcastDidFinishLoading:(SUAppcast *)appcast
@@ -217,7 +223,7 @@
     // Find the best supported update ourselves
     if (item == nil) {
         SUAppcastItem *deltaUpdateItem = nil;
-        item = [[self class] bestItemFromAppcastItems:appcast.items getDeltaItem:&deltaUpdateItem withHostVersion:self.host.version comparator:[self versionComparator]];
+        item = [[self class] bestItemFromAppcastItems:appcast.items getDeltaItem:&deltaUpdateItem withHostVersion:self.host.version comparator:self.versionComparator];
         if (item != nil && deltaUpdateItem != nil) {
             self.nonDeltaUpdateItem = item;
             item = deltaUpdateItem;
@@ -263,29 +269,6 @@
                                                userInfo:@{
                                                    NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"You already have the newest version of %@.", "'Error' message when the user checks for updates but is already current or the feed doesn't contain any updates. (not necessarily shown in UI)"), self.host.name]
                                                }]];
-}
-
-- (NSString *)appCachePath
-{
-    // @TODO remove
-    NSArray *cachePaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    NSString *cachePath = nil;
-    if ([cachePaths count]) {
-        cachePath = [cachePaths objectAtIndex:0];
-    }
-    if (!cachePath) {
-        SULog(SULogLevelError, @"Failed to find user's cache directory! Using system default");
-        cachePath = NSTemporaryDirectory();
-    }
-    
-    NSString *name = [self.host.bundle bundleIdentifier];
-    if (!name) {
-        name = [self.host name];
-    }
-    
-    cachePath = [cachePath stringByAppendingPathComponent:name];
-    cachePath = [cachePath stringByAppendingPathComponent:@SPARKLE_BUNDLE_IDENTIFIER];
-    return cachePath;
 }
 
 #pragma mark - Download Update
@@ -534,35 +517,13 @@
     [NSApp terminate:self];
 }
 
-- (void)cleanUpDownload
-{
-    if (self.tempDir != nil) // tempDir contains downloadPath, so we implicitly delete both here.
-    {
-        BOOL success = NO;
-        NSError *error = nil;
-        success = [[NSFileManager defaultManager] removeItemAtPath:self.tempDir error:&error]; // Clean up the copied relauncher
-        if (!success)
-            [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:[self.tempDir stringByDeletingLastPathComponent] destination:@"" files:@[[self.tempDir lastPathComponent]] tag:NULL];
-    }
-}
-
-- (void)installerForHost:(SUHost *)aHost failedWithError:(NSError *)error
-{
-    if (aHost != self.host) {
-        return;
-    }
-    NSError *dontThrow = nil;
-    [[NSFileManager defaultManager] removeItemAtPath:self.relaunchPath error:&dontThrow]; // Clean up the copied relauncher
-    [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{
-        NSLocalizedDescriptionKey: SULocalizedString(@"An error occurred while installing the update. Please try again later.", nil),
-        NSLocalizedFailureReasonErrorKey: [error localizedDescription],
-        NSUnderlyingErrorKey: error,
-    }]];
-}
+#pragma mark - Abort / Error
 
 - (void)abortUpdate
 {
-    [self cleanUpDownload];
+    // @TODO: we should clean up download folder
+//    [self cleanUpDownload];
+
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     self.updateItem = nil;
     [super abortUpdate];
