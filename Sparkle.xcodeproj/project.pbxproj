@@ -2767,7 +2767,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andymatuschak.Sparkle.install-service";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.sparkle-project.Sparkle.install-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -2813,7 +2813,7 @@
 				INFOPLIST_FILE = "Installation XPC Service/Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andymatuschak.Sparkle.install-service";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.sparkle-project.Sparkle.install-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -2859,7 +2859,7 @@
 				INFOPLIST_FILE = "Installation XPC Service/Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andymatuschak.Sparkle.install-service";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.sparkle-project.Sparkle.install-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;

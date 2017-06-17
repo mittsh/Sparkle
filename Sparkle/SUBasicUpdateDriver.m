@@ -44,6 +44,13 @@
 @synthesize installerServiceConnection = _installerServiceConnection;
 @synthesize installerServiceProxy = _installerServiceProxy;
 
+- (void)dealloc
+{
+    [self xpcInvalidateConnection];
+}
+
+#pragma mark - XPC Connection
+
 - (void)xpcCheckConnection
 {
     if (self.installerServiceConnection == nil) {
@@ -53,20 +60,28 @@
 
 - (void)xpcStartConnection
 {
-    NSXPCConnection *connection = [[NSXPCConnection alloc] initWithServiceName:@"com.andymatuschak.Sparkle.install-service"];
+    NSXPCConnection *connection = [[NSXPCConnection alloc] initWithServiceName:@"org.sparkle-project.Sparkle.install-service"];
     connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceProtocol)];
     connection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceAppProtocol)];
     connection.exportedObject = self;
+    connection.interruptionHandler = ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            SULog(SULogLevelError, @"XPC Connection Interrupted");
+            [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{ NSLocalizedDescriptionKey: SULocalizedString(@"Update failed (connection with installation helper was interrupted).", nil) }]];
+        });
+    };
     self.installerServiceConnection = connection;
     self.installerServiceProxy = [connection remoteObjectProxyWithErrorHandler:^(NSError * _Nonnull error) {
-        NSLog(@"XPC Connection Error: %@", error);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            SULog(SULogLevelError, @"XPC Connection Error: %@", error.localizedDescription);
+            [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{ NSLocalizedDescriptionKey: SULocalizedString(@"Update failed (connection error with installation helper).", nil) }]];
+        });
     }];
     [connection resume];
 }
 
 - (void)xpcInvalidateConnection
 {
-    // @TODO: we must call this
     [self.installerServiceConnection invalidate];
     self.installerServiceConnection = nil;
 }
@@ -257,9 +272,10 @@
 - (void)didNotFindUpdate
 {
     id<SUUpdaterPrivate> updater = self.updater;
+    id<SUUpdaterDelegate> updaterDelegate = ((id<SUUpdaterPrivate>)updater).delegate;
     
-    if ([[updater delegate] respondsToSelector:@selector(updaterDidNotFindUpdate:)]) {
-        [[updater delegate] updaterDidNotFindUpdate:self.updater];
+    if ([updaterDelegate respondsToSelector:@selector(updaterDidNotFindUpdate:)]) {
+        [updaterDelegate updaterDidNotFindUpdate:self.updater];
     }
 
     [[NSNotificationCenter defaultCenter] postNotificationName:SUUpdaterDidNotFindUpdateNotification object:self.updater];
@@ -514,6 +530,7 @@
 // Note: this is overridden by the automatic update driver to not terminate in some cases
 - (void)terminateApp
 {
+    [self xpcInvalidateConnection];
     [NSApp terminate:self];
 }
 
@@ -524,6 +541,9 @@
     // @TODO: we should clean up download folder
 //    [self cleanUpDownload];
 
+    // Stop XPC connection
+    [self xpcInvalidateConnection];
+
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     self.updateItem = nil;
     [super abortUpdate];
@@ -531,7 +551,7 @@
 
 - (void)abortUpdateWithError:(NSError *)error
 {
-    if ([error code] != SUNoUpdateError) { // Let's not bother logging this.
+    if (error.code != SUNoUpdateError) { // Let's not bother logging this.
         NSError *errorToDisplay = error;
         int finiteRecursion=5;
         do {
@@ -546,7 +566,7 @@
 
     // Notify host app that update has aborted
     id<SUUpdaterPrivate> updater = self.updater;
-    id<SUUpdaterDelegate> updaterDelegate = [updater delegate];
+    id<SUUpdaterDelegate> updaterDelegate = updater.delegate;
     if ([updaterDelegate respondsToSelector:@selector(updater:didAbortWithError:)]) {
         [updaterDelegate updater:self.updater didAbortWithError:error];
     }
