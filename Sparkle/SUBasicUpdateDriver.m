@@ -18,7 +18,6 @@
 #import "SUUpdaterPrivate.h"
 #import "SUUpdaterDelegate.h"
 #import "SUFileManager.h"
-#import "SUUpdateValidator.h"
 #import "SULocalizations.h"
 #import "SUErrors.h"
 #import "SUAppcast.h"
@@ -29,13 +28,10 @@
 @interface SUBasicUpdateDriver () <SUInstallerServiceAppProtocol>
 
 @property (strong) SUAppcastItem *updateItem;
-@property (copy) NSString *downloadPath;
 
 @property (strong) SUAppcastItem *nonDeltaUpdateItem;
 @property (copy) NSString *tempDir;
 @property (copy) NSString *relaunchPath;
-
-@property (nonatomic) SUUpdateValidator *updateValidator;
 
 @property (strong) NSXPCConnection *installerServiceConnection;
 @property (strong) id installerServiceProxy;
@@ -45,13 +41,10 @@
 @implementation SUBasicUpdateDriver
 
 @synthesize updateItem;
-@synthesize downloadPath;
 
 @synthesize nonDeltaUpdateItem;
 @synthesize tempDir;
 @synthesize relaunchPath;
-
-@synthesize updateValidator = _updateValidator;
 
 @synthesize installerServiceConnection = _installerServiceConnection;
 @synthesize installerServiceProxy = _installerServiceProxy;
@@ -378,6 +371,8 @@
 
 - (void)extractUpdate
 {
+    assert(self.updateItem);
+
     // Start extract in XPC service
     [self xpcCheckConnection];
     [self.installerServiceProxy extractUpdateWithLocalIdentifier:self.updateItem.localIdentifier hostBundlePath:self.host.bundlePath];
@@ -400,7 +395,6 @@
 - (void)extractUpdateDidFailWithError:(NSError *)error
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        self.updateValidator = nil;
         if (self.updateItem.isDeltaUpdate) {
             [self failedToApplyDeltaUpdate];
             return;
@@ -431,35 +425,21 @@
     [self installWithToolAndRelaunch:YES];
 }
 
+#pragma mark - Install Update
+
 - (void)installWithToolAndRelaunch:(BOOL)relaunch
 {
     // Perhaps a poor assumption but: if we're not relaunching, we assume we shouldn't be showing any UI either. Because non-relaunching installations are kicked off without any user interaction, we shouldn't be interrupting them.
     [self installWithToolAndRelaunch:relaunch displayingUserInterface:relaunch];
 }
 
-// Creates intermediate directories up until targetPath if they don't already exist,
-// and removes the directory at targetPath if one already exists there
-- (BOOL)preparePathForRelaunchTool:(NSString *)targetPath error:(NSError * __autoreleasing *)error
+- (void)installWithToolAndRelaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI
 {
-    NSFileManager *fileManager = [[NSFileManager alloc] init];
-    if ([fileManager fileExistsAtPath:targetPath]) {
-        NSError *removeError = nil;
-        if (![fileManager removeItemAtPath:targetPath error:&removeError]) {
-            if (error != NULL) {
-                *error = removeError;
-            }
-            return NO;
-        }
-    } else {
-        NSError *createDirectoryError = nil;
-        if (![fileManager createDirectoryAtPath:[targetPath stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:@{} error:&createDirectoryError]) {
-            if (error != NULL) {
-                *error = createDirectoryError;
-            }
-            return NO;
-        }
-    }
-    return YES;
+    assert(self.updateItem);
+
+    // Start install in XPC service
+    [self xpcCheckConnection];
+    [self.installerServiceProxy installWithLocalIdentifier:self.updateItem.localIdentifier relaunch:relaunch displayingUserInterface:showUI hostAppPid:(uint64_t)[NSProcessInfo processInfo].processIdentifier];
 }
 
 - (BOOL)mayUpdateAndRestart
@@ -468,138 +448,84 @@
     return (!updater.delegate || ![updater.delegate respondsToSelector:@selector(updaterShouldRelaunchApplication:)] || [updater.delegate updaterShouldRelaunchApplication:self.updater]);
 }
 
-- (void)installWithToolAndRelaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI
+- (void)installUpdateDidFailWithError:(NSError *)error
 {
-    assert(self.updateItem);
-    assert(self.updateValidator);
-    
-    BOOL validationCheckSuccess = [self.updateValidator validateWithUpdateDirectory:self.tempDir];
-    if (!validationCheckSuccess) {
-        NSDictionary *userInfo = @{
-                                   NSLocalizedDescriptionKey: SULocalizedString(@"An error occurred while extracting the archive. Please try again later.", nil),
-                                   NSLocalizedFailureReasonErrorKey: SULocalizedString(@"The update is improperly signed.", nil),
-                                   };
-        [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUSignatureError userInfo:userInfo]];
-        return;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self abortUpdateWithError:error];
+    });
+}
+
+- (void)canInstallAndRelaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI completionBlock:(SUInstallerServiceCanInstallAndRelaunchBlock)completionBlock
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        BOOL canInstallAndRelaunch = [self _canInstallAndRelaunch:relaunch displayingUserInterface:showUI];
+        completionBlock(canInstallAndRelaunch);
+    });
+}
+
+- (void)willRelaunchApplication
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (self.updateItem != nil) {
+            [self _willRelaunchApplication];
+        }
+    });
+}
+
+- (void)shouldTerminateApplication
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (self.updateItem != nil) {
+            [self terminateApp];
+        }
+    });
+}
+
+- (BOOL)_canInstallAndRelaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI
+{
+    if (self.updateItem == nil) {
+        return NO;
     }
 
-    if (![self mayUpdateAndRestart])
-    {
+    id<SUUpdaterPrivate> updater = self.updater;
+    id<SUUpdaterDelegate> updaterDelegate = updater.delegate;
+
+    // Make sure we can restart now
+    if (![self mayUpdateAndRestart]) {
         [self abortUpdate];
-        return;
+        return NO;
     }
 
     // Give the host app an opportunity to postpone the install and relaunch.
-    id<SUUpdaterPrivate> updater = self.updater;
     static BOOL postponedOnce = NO;
-    id<SUUpdaterDelegate> updaterDelegate = [updater delegate];
-    if (!postponedOnce && [updaterDelegate respondsToSelector:@selector(updater:shouldPostponeRelaunchForUpdate:untilInvoking:)])
-    {
+    if (!postponedOnce && [updaterDelegate respondsToSelector:@selector(updater:shouldPostponeRelaunchForUpdate:untilInvoking:)]) {
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:[[self class] instanceMethodSignatureForSelector:@selector(installWithToolAndRelaunch:)]];
         [invocation setSelector:@selector(installWithToolAndRelaunch:)];
         [invocation setArgument:&relaunch atIndex:2];
         [invocation setTarget:self];
         postponedOnce = YES;
-        if ([updaterDelegate updater:self.updater shouldPostponeRelaunchForUpdate:self.updateItem untilInvoking:invocation]) {
-            return;
+        if ([updaterDelegate updater:(SUUpdater<SUUpdaterPrivate>*)updater shouldPostponeRelaunchForUpdate:self.updateItem untilInvoking:invocation]) {
+            return NO;
         }
     }
 
-
+    // Call delegate willInstallUpdate:
     if ([updaterDelegate respondsToSelector:@selector(updater:willInstallUpdate:)]) {
-        [updaterDelegate updater:self.updater willInstallUpdate:self.updateItem];
+        [updaterDelegate updater:(SUUpdater<SUUpdaterPrivate>*)updater willInstallUpdate:self.updateItem];
     }
 
-    NSBundle *sparkleBundle = updater.sparkleBundle;
-    if (!sparkleBundle) {
-        SULog(SULogLevelError, @"Sparkle bundle is gone?");
-        return;
-    }
+    return YES;
+}
 
-    // Copy the relauncher into a temporary directory so we can get to it after the new version's installed.
-    // Only the paranoid survive: if there's already a stray copy of relaunch there, we would have problems.
-    NSString *const relaunchToolSourceName = @"" SPARKLE_RELAUNCH_TOOL_NAME;
-    NSString *const relaunchToolSourcePath = [sparkleBundle pathForResource:relaunchToolSourceName ofType:@"app"];
-    NSString *relaunchCopyTargetPath = nil;
-    NSError *error = nil;
-    BOOL copiedRelaunchPath = NO;
-
-    if (!relaunchToolSourceName || ![relaunchToolSourceName length]) {
-        SULog(SULogLevelError, @"SPARKLE_RELAUNCH_TOOL_NAME not configued");
-    }
-
-    if (!relaunchToolSourcePath) {
-        SULog(SULogLevelError, @"Sparkle.framework is damaged. %@ is missing", relaunchToolSourceName);
-    }
-
-    if (relaunchToolSourcePath) {
-        NSString *hostBundleBaseName = [[self.host.bundlePath lastPathComponent] stringByDeletingPathExtension];
-        if (!hostBundleBaseName) {
-            SULog(SULogLevelError, @"Unable to get bundlePath");
-            hostBundleBaseName = @"Sparkle";
-        }
-        NSString *relaunchCopyBaseName = [NSString stringWithFormat:@"%@ (Autoupdate).app", hostBundleBaseName];
-
-        relaunchCopyTargetPath = [[self appCachePath] stringByAppendingPathComponent:relaunchCopyBaseName];
-
-        SUFileManager *fileManager = [SUFileManager defaultManager];
-
-        NSURL *relaunchToolSourceURL = [NSURL fileURLWithPath:relaunchToolSourcePath];
-        NSURL *relaunchCopyTargetURL = [NSURL fileURLWithPath:relaunchCopyTargetPath];
-
-        // We only need to run our copy of the app by spawning a task
-        // Since we are copying the app to a directory that is write-accessible, we don't need to muck with owner/group IDs
-        if ([self preparePathForRelaunchTool:relaunchCopyTargetPath error:&error] && [fileManager copyItemAtURL:relaunchToolSourceURL toURL:relaunchCopyTargetURL error:&error]) {
-            copiedRelaunchPath = YES;
-
-            // We probably don't need to release the quarantine, but we'll do it just in case it's necessary.
-            // Perhaps in a sandboxed environment this matters more. Note that this may not be a fatal error.
-            NSError *quarantineError = nil;
-            if (![fileManager releaseItemFromQuarantineAtRootURL:relaunchCopyTargetURL error:&quarantineError]) {
-                SULog(SULogLevelError, @"Failed to release quarantine on %@ with error %@", relaunchCopyTargetPath, quarantineError);
-            }
-        }
-    }
-
-    if (!copiedRelaunchPath) {
-        [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SURelaunchError userInfo:@{
-            NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"An error occurred while relaunching %1$@, but the new version will be available next time you run %1$@.", nil), [self.host name]],
-            NSLocalizedFailureReasonErrorKey: [NSString stringWithFormat:@"Couldn't copy relauncher (%@) to temporary path (%@)! %@",
-                                                                         relaunchToolSourcePath, relaunchCopyTargetPath, (error ? [error localizedDescription] : @"")],
-        }]];
-        return;
-    }
-
-    self.relaunchPath = relaunchCopyTargetPath; // Set for backwards compatibility, in case any delegates modify it
+- (void)_willRelaunchApplication
+{
+    id<SUUpdaterPrivate> updater = self.updater;
+    id<SUUpdaterDelegate> updaterDelegate = updater.delegate;
+    // Call delegate updaterWillRelaunchApplication:
     [[NSNotificationCenter defaultCenter] postNotificationName:SUUpdaterWillRestartNotification object:self];
-    if ([updaterDelegate respondsToSelector:@selector(updaterWillRelaunchApplication:)])
+    if ([updaterDelegate respondsToSelector:@selector(updaterWillRelaunchApplication:)]) {
         [updaterDelegate updaterWillRelaunchApplication:self.updater];
-
-    NSString *relaunchToolPath = [[NSBundle bundleWithPath:self.relaunchPath] executablePath];
-    if (!relaunchToolPath || ![[NSFileManager defaultManager] fileExistsAtPath:self.relaunchPath]) {
-        // Note that we explicitly use the host app's name here, since updating plugin for Mail relaunches Mail, not just the plugin.
-        [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SURelaunchError userInfo:@{
-            NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"An error occurred while relaunching %1$@, but the new version will be available next time you run %1$@.", nil), [self.host name]],
-            NSLocalizedFailureReasonErrorKey: [NSString stringWithFormat:@"Couldn't find the relauncher (expected to find it at %@ and %@)", relaunchToolSourcePath, self.relaunchPath],
-        }]];
-        return;
     }
-
-    NSString *pathToRelaunch = [self.host bundlePath];
-    if ([updaterDelegate respondsToSelector:@selector(pathToRelaunchForUpdater:)]) {
-        NSString *delegateRelaunchPath = [updaterDelegate pathToRelaunchForUpdater:self.updater];
-        if (delegateRelaunchPath != nil) {
-            pathToRelaunch = delegateRelaunchPath;
-        }
-    }
-    
-    [NSTask launchedTaskWithLaunchPath:relaunchToolPath arguments:@[[self.host bundlePath],
-                                                                    pathToRelaunch,
-                                                                    [NSString stringWithFormat:@"%d", [[NSProcessInfo processInfo] processIdentifier]],
-                                                                    self.tempDir,
-                                                                    relaunch ? @"1" : @"0",
-                                                                    showUI ? @"1" : @"0"]];
-    [self terminateApp];
 }
 
 // Note: this is overridden by the automatic update driver to not terminate in some cases

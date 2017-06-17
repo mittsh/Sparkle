@@ -217,15 +217,6 @@ SU_EXPORT extern NSString *const SUUpdaterAppcastNotificationKey;
 - (nullable id<SUVersionDisplay>)versionDisplayerForUpdater:(SUUpdater *)updater;
 
 /*!
- Returns the path which is used to relaunch the client after the update is installed.
- 
- The default is the path of the host bundle.
- 
- \param updater The SUUpdater instance.
- */
-- (nullable NSString *)pathToRelaunchForUpdater:(SUUpdater *)updater;
-
-/*!
  Called before an updater shows a modal alert window,
  to give the host the opportunity to hide attached windows that may get in the way.
  

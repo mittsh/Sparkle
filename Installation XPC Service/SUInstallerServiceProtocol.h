@@ -17,6 +17,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef void(^SUInstallerServiceCheckForUpdatesBlock)(SUAppcast* _Nullable appcast, NSError* _Nullable error);
+typedef void(^SUInstallerServiceCanInstallAndRelaunchBlock)(BOOL canInstallAndRelaunch);
 
 @protocol SUInstallerServiceProtocol
 
@@ -27,6 +28,8 @@ typedef void(^SUInstallerServiceCheckForUpdatesBlock)(SUAppcast* _Nullable appca
 
 // @TODO: security around host path
 - (void)extractUpdateWithLocalIdentifier:(NSString *)localIdentifier hostBundlePath:(NSString*)hostBundlePath;
+
+- (void)installWithLocalIdentifier:(NSString *)localIdentifier relaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI hostAppPid:(uint64_t)hostAppPid;
     
 @end
 
@@ -39,6 +42,11 @@ typedef void(^SUInstallerServiceCheckForUpdatesBlock)(SUAppcast* _Nullable appca
 - (void)extractUpdateDidComplete;
 - (void)extractUpdateDidFailWithError:(NSError*)error;
 - (void)extractUpdateProgress:(double)progress;
+
+- (void)canInstallAndRelaunch:(BOOL)relaunch displayingUserInterface:(BOOL)showUI completionBlock:(SUInstallerServiceCanInstallAndRelaunchBlock)completionBlock;
+- (void)willRelaunchApplication;
+- (void)shouldTerminateApplication;
+- (void)installUpdateDidFailWithError:(NSError*)error;
 
 @end
 

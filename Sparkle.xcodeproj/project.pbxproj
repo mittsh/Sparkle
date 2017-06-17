@@ -29,7 +29,6 @@
 		1420DF50196247F900203BB0 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1420DF4F196247F900203BB0 /* Images.xcassets */; };
 		142E0E0019A6954400E4312B /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		142E0E0219A6A14700E4312B /* Sparkle.framework in Copy Files */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		142E0E0419A6A26F00E4312B /* Autoupdate.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55C14BB7136EEF1500649790 /* Autoupdate.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		142E0E0919A83AAC00E4312B /* SUBinaryDeltaTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 142E0E0819A83AAC00E4312B /* SUBinaryDeltaTest.m */; };
 		14652F7C19A9725300959E44 /* SUBinaryDeltaCommon.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D06E8E20FD68CC7005AE3F6 /* SUBinaryDeltaCommon.m */; };
 		14652F7D19A9726700959E44 /* SUBinaryDeltaApply.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D06E8E00FD68CC7005AE3F6 /* SUBinaryDeltaApply.m */; };
@@ -282,6 +281,7 @@
 		AE18621C1EF45C05001E0138 /* SULog.m in Sources */ = {isa = PBXBuildFile; fileRef = 55C14F05136EF6DB00649790 /* SULog.m */; };
 		AE18621D1EF45C05001E0138 /* SUOperatingSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 726F2CE41BC9C33D001971A4 /* SUOperatingSystem.m */; };
 		AE18621E1EF45C76001E0138 /* SUCodeSigningVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 61B078CD15A5FB6100600039 /* SUCodeSigningVerifier.m */; };
+		AE1862221EF5E7CD001E0138 /* Autoupdate.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55C14BB7136EEF1500649790 /* Autoupdate.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C23E885B1BE7B24F0050BB73 /* SparkleTestCodeSignApp.enc.dmg in Resources */ = {isa = PBXBuildFile; fileRef = C23E88591BE7AF890050BB73 /* SparkleTestCodeSignApp.enc.dmg */; };
 		E1545EC51E1D7E0200FAECE8 /* SUTouchBarButtonGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = E1545EC31E1D7E0200FAECE8 /* SUTouchBarButtonGroup.h */; };
 		E1545EC61E1D7E0200FAECE8 /* SUTouchBarButtonGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = E1545EC41E1D7E0200FAECE8 /* SUTouchBarButtonGroup.m */; };
@@ -355,13 +355,6 @@
 			remoteGlobalIDString = 55C14BB6136EEF1500649790;
 			remoteInfo = Autoupdate;
 		};
-		55C14F96136F044100649790 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 55C14BB6136EEF1500649790;
-			remoteInfo = Autoupdate;
-		};
 		5AE13FA71E0D7E1C000D2C2C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
@@ -418,6 +411,13 @@
 			remoteGlobalIDString = AE1861E81EF3DAAA001E0138;
 			remoteInfo = "Installation XPC Service";
 		};
+		AE18621F1EF5E7BA001E0138 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55C14BB6136EEF1500649790;
+			remoteInfo = Autoupdate;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -430,16 +430,6 @@
 				142E0E0219A6A14700E4312B /* Sparkle.framework in Copy Files */,
 			);
 			name = "Copy Files";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		142E0E0319A6A24100E4312B /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 12;
-			files = (
-				142E0E0419A6A26F00E4312B /* Autoupdate.app in CopyFiles */,
-			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		61B5FB4D09C4E9FA00B25A18 /* Copy Frameworks */ = {
@@ -482,6 +472,16 @@
 				AE1861F51EF3DAAA001E0138 /* Installation XPC Service.xpc in Embed XPC Services */,
 			);
 			name = "Embed XPC Services";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE1862211EF5E7C3001E0138 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				AE1862221EF5E7CD001E0138 /* Autoupdate.app in CopyFiles */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -844,10 +844,10 @@
 		AE1861ED1EF3DAAA001E0138 /* SUInstallerService.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SUInstallerService.m; sourceTree = "<group>"; };
 		AE1861EF1EF3DAAA001E0138 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		AE1861F11EF3DAAA001E0138 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AE1861FC1EF3EF6E001E0138 /* SUAppcastLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SUAppcastLoader.h; sourceTree = "<group>"; };
-		AE1861FD1EF3EF6E001E0138 /* SUAppcastLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SUAppcastLoader.m; sourceTree = "<group>"; };
-		AE1861FF1EF42541001E0138 /* SUAppcastItemDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SUAppcastItemDownloader.h; sourceTree = "<group>"; };
-		AE1862001EF42541001E0138 /* SUAppcastItemDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SUAppcastItemDownloader.m; sourceTree = "<group>"; };
+		AE1861FC1EF3EF6E001E0138 /* SUAppcastLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SUAppcastLoader.h; path = ../Sparkle/SUAppcastLoader.h; sourceTree = "<group>"; };
+		AE1861FD1EF3EF6E001E0138 /* SUAppcastLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SUAppcastLoader.m; path = ../Sparkle/SUAppcastLoader.m; sourceTree = "<group>"; };
+		AE1861FF1EF42541001E0138 /* SUAppcastItemDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SUAppcastItemDownloader.h; path = ../Sparkle/SUAppcastItemDownloader.h; sourceTree = "<group>"; };
+		AE1862001EF42541001E0138 /* SUAppcastItemDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SUAppcastItemDownloader.m; path = ../Sparkle/SUAppcastItemDownloader.m; sourceTree = "<group>"; };
 		AE18620A1EF45A77001E0138 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AE18620C1EF45A84001E0138 /* libxar.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxar.1.tbd; path = usr/lib/libxar.1.tbd; sourceTree = SDKROOT; };
 		C23E88591BE7AF890050BB73 /* SparkleTestCodeSignApp.enc.dmg */ = {isa = PBXFileReference; lastKnownFileType = file; path = SparkleTestCodeSignApp.enc.dmg; sourceTree = "<group>"; };
@@ -1221,10 +1221,6 @@
 		61299B3909CB055000B7442F /* Appcast Support */ = {
 			isa = PBXGroup;
 			children = (
-				AE1861FC1EF3EF6E001E0138 /* SUAppcastLoader.h */,
-				AE1861FD1EF3EF6E001E0138 /* SUAppcastLoader.m */,
-				AE1861FF1EF42541001E0138 /* SUAppcastItemDownloader.h */,
-				AE1862001EF42541001E0138 /* SUAppcastItemDownloader.m */,
 				61B5FB9409C4F04600B25A18 /* SUAppcast.h */,
 				61B5FB9509C4F04600B25A18 /* SUAppcast.m */,
 				61B5FC5309C5182000B25A18 /* SUAppcastItem.h */,
@@ -1399,6 +1395,10 @@
 				AE1861EB1EF3DAAA001E0138 /* SUInstallerServiceProtocol.h */,
 				AE1861EC1EF3DAAA001E0138 /* SUInstallerService.h */,
 				AE1861ED1EF3DAAA001E0138 /* SUInstallerService.m */,
+				AE1861FC1EF3EF6E001E0138 /* SUAppcastLoader.h */,
+				AE1861FD1EF3EF6E001E0138 /* SUAppcastLoader.m */,
+				AE1861FF1EF42541001E0138 /* SUAppcastItemDownloader.h */,
+				AE1862001EF42541001E0138 /* SUAppcastItemDownloader.m */,
 				AE1861EF1EF3DAAA001E0138 /* main.m */,
 				AE1861F11EF3DAAA001E0138 /* Info.plist */,
 			);
@@ -1679,7 +1679,6 @@
 			buildPhases = (
 				8DC2EF500486A6940098B216 /* Headers */,
 				8DC2EF520486A6940098B216 /* Resources */,
-				142E0E0319A6A24100E4312B /* CopyFiles */,
 				8DC2EF540486A6940098B216 /* Sources */,
 				8DC2EF560486A6940098B216 /* Frameworks */,
 				6131B1910DDCDE32005215F0 /* Run Script: Set Git Version Info */,
@@ -1690,7 +1689,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				55C14F97136F044100649790 /* PBXTargetDependency */,
 				AE1861F31EF3DAAA001E0138 /* PBXTargetDependency */,
 			);
 			name = Sparkle;
@@ -1703,6 +1701,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AE1861F91EF3DAAA001E0138 /* Build configuration list for PBXNativeTarget "Installation XPC Service" */;
 			buildPhases = (
+				AE1862211EF5E7C3001E0138 /* CopyFiles */,
 				AE1861E51EF3DAAA001E0138 /* Sources */,
 				AE1861E61EF3DAAA001E0138 /* Frameworks */,
 				AE1861E71EF3DAAA001E0138 /* Resources */,
@@ -1710,6 +1709,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				AE1862201EF5E7BA001E0138 /* PBXTargetDependency */,
 			);
 			name = "Installation XPC Service";
 			productName = "Installation XPC Service";
@@ -2223,11 +2223,6 @@
 			target = 55C14BB6136EEF1500649790 /* Autoupdate */;
 			targetProxy = 1495006B195FB8A600BC5B5B /* PBXContainerItemProxy */;
 		};
-		55C14F97136F044100649790 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 55C14BB6136EEF1500649790 /* Autoupdate */;
-			targetProxy = 55C14F96136F044100649790 /* PBXContainerItemProxy */;
-		};
 		5AE13FA81E0D7E1C000D2C2C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 5AA96C541E0AE0DB00CA4346 /* generate_appcast */;
@@ -2267,6 +2262,11 @@
 			isa = PBXTargetDependency;
 			target = AE1861E81EF3DAAA001E0138 /* Installation XPC Service */;
 			targetProxy = AE1861F21EF3DAAA001E0138 /* PBXContainerItemProxy */;
+		};
+		AE1862201EF5E7BA001E0138 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55C14BB6136EEF1500649790 /* Autoupdate */;
+			targetProxy = AE18621F1EF5E7BA001E0138 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

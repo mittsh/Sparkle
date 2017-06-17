@@ -15,7 +15,6 @@
 @interface SUBasicUpdateDriver : SUUpdateDriver
 
 @property (strong, readonly) SUAppcastItem *updateItem;
-@property (copy, readonly) NSString *downloadPath;
 
 - (void)checkForUpdatesAtURL:(NSURL *)URL host:(SUHost *)host;
 
