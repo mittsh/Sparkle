@@ -60,6 +60,7 @@
 
 - (void)xpcStartConnection
 {
+    __weak SUBasicUpdateDriver* weakSelf = self;
     NSXPCConnection *connection = [[NSXPCConnection alloc] initWithServiceName:@"org.sparkle-project.Sparkle.install-service"];
     connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceProtocol)];
     connection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(SUInstallerServiceAppProtocol)];
@@ -67,14 +68,14 @@
     connection.interruptionHandler = ^{
         dispatch_async(dispatch_get_main_queue(), ^{
             SULog(SULogLevelError, @"XPC Connection Interrupted");
-            [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{ NSLocalizedDescriptionKey: SULocalizedString(@"Update failed (connection with installation helper was interrupted).", nil) }]];
+            [weakSelf abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{ NSLocalizedDescriptionKey: SULocalizedString(@"Update failed (connection with installation helper was interrupted).", nil) }]];
         });
     };
     self.installerServiceConnection = connection;
     self.installerServiceProxy = [connection remoteObjectProxyWithErrorHandler:^(NSError * _Nonnull error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             SULog(SULogLevelError, @"XPC Connection Error: %@", error.localizedDescription);
-            [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{ NSLocalizedDescriptionKey: SULocalizedString(@"Update failed (connection error with installation helper).", nil) }]];
+            [weakSelf abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{ NSLocalizedDescriptionKey: SULocalizedString(@"Update failed (connection error with installation helper).", nil) }]];
         });
     }];
     [connection resume];

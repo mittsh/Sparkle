@@ -76,8 +76,8 @@
     dispatch_async(self.serviceQueue, ^{
         SUAppcastItem* item = [self.appcast itemWithLocalIdentifier:localIdentifier];
         if (item == nil) {
-            // @TODO
-//            [self.connection.remoteObjectProxy downloadUpdateDidFailWithError:(NSError*_Nonnull)error];
+            NSError *error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUMissingUpdateError userInfo:@{NSLocalizedDescriptionKey: @"Failed to download update (update item not found)."}];
+            [self.connection.remoteObjectProxy downloadUpdateDidFailWithError:error];
             return;
         }
         SUAppcastItemDownloader* downloader = [[SUAppcastItemDownloader alloc] initWithAppcastItem:item callbackQueue:self.serviceQueue updateBlock:^(NSString * _Nullable downloadedFilePath, uint64_t totalBytesWritten, uint64_t totalBytesExpectedToWrite, NSError * _Nullable error) {
