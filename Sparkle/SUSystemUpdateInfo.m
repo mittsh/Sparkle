@@ -14,8 +14,21 @@
 
 #include "AppKitPrevention.h"
 
+#define APPLICATION_IS_SANDBOXDED 1
+
 @implementation SUSystemUpdateInfo
 
+#if APPLICATION_IS_SANDBOXDED
++ (BOOL)systemAllowsAutomaticUpdatesForHost:(SUHost *)host
+{
+    /* If the host application is sandboxed, there's no way to check if we can
+     write in the target directory without creating an XPC service here for that.
+     It's probably not worth the effort. We return YES for now.
+     @TODO Paw: Maybe implement this later
+     */
+    return YES;
+}
+#else
 + (BOOL)systemAllowsAutomaticUpdatesForHost:(SUHost *)host
 {
     // Does the developer want us to disable automatic updates?
@@ -57,5 +70,6 @@
     
     return changeOwnerAndGroupSuccess;
 }
+#endif
 
 @end

@@ -29,6 +29,7 @@ extern NSString *const SUUpdateDriverFinishedNotification;
 /** If there is an update waiting to be installed, show UI indicating so. Return NO otherwise (e.g. if it's not supported). */
 - (BOOL)resumeUpdateInteractively;
 - (void)showAlert:(NSAlert *)alert;
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 
 @property (getter=isInterruptible, readonly) BOOL interruptible;
 @property (readonly) BOOL finished;

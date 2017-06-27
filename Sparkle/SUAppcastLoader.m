@@ -54,7 +54,6 @@
     NSURLSessionDataTask* task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         if (data != nil) {
             // Success
-            NSLog(@"URL Session Task Succeeded: HTTP %ld", ((NSHTTPURLResponse*)response).statusCode);
             NSError* parsingError = nil;
             SUAppcast* appcast = [[SUAppcast alloc] initWithAppcastXMLData:data error:&parsingError];
             if (appcast != nil) {
@@ -66,7 +65,6 @@
         }
         else {
             // Failure
-            NSLog(@"URL Session Task Failed: %@", [error localizedDescription]);
             completionBlock(NO, nil, [self appcastError:error]);
         }
     }];

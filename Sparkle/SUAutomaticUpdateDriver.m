@@ -73,7 +73,6 @@ static const NSTimeInterval SUAutomaticUpdatePromptImpatienceTimer = 60 * 60 * 2
 
 - (void)unarchiverDidFinish:(id)__unused ua
 {
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(systemWillPowerOff:) name:NSWorkspaceWillPowerOffNotification object:nil];
 
     // Sudden termination is available on 10.6+
@@ -210,8 +209,13 @@ static const NSTimeInterval SUAutomaticUpdatePromptImpatienceTimer = 60 * 60 * 2
     }]];
 }
 
-- (void)applicationWillTerminate:(NSNotification *)__unused note
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
+    // If not update on termination, do nothing
+    if (!self.willUpdateOnTermination) {
+        return NSTerminateNow;
+    }
+    
     // We don't want to terminate the app if the user or someone else initiated a termination
     // Use a property instead of passing an argument to installWithToolAndRelaunch:
     // because we give the delegate an invocation to our install methods and
@@ -219,11 +223,16 @@ static const NSTimeInterval SUAutomaticUpdatePromptImpatienceTimer = 60 * 60 * 2
     self.isTerminating = YES;
     
     [self installWithToolAndRelaunch:NO];
+
+    return NSTerminateLater;
 }
 
 - (void)terminateApp
 {
-    if (!self.isTerminating) {
+    if (self.isTerminating) {
+        [NSApp replyToApplicationShouldTerminate:YES];
+    }
+    else {
         [super terminateApp];
     }
 }

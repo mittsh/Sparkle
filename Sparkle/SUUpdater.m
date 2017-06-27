@@ -575,4 +575,13 @@ static NSString *escapeURLComponent(NSString *str) {
 
 - (NSBundle *)hostBundle { return [self.host bundle]; }
 
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+    SUUpdateDriver *aDriver = self.driver;
+    if (aDriver == nil) {
+        return NSTerminateNow;
+    }
+    return [aDriver applicationShouldTerminate:sender];
+}
+
 @end

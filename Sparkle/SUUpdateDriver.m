@@ -69,4 +69,9 @@ NSString *const SUUpdateDriverFinishedNotification = @"SUUpdateDriverFinished";
     SULog(SULogLevelDefault, @"ALERT: %@\n%@", alert.messageText, alert.informativeText);
 }
 
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+    return NSTerminateNow;
+}
+
 @end

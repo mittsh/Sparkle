@@ -230,6 +230,8 @@ SU_EXPORT @interface SUUpdater : NSObject
  */
 @property (readonly) BOOL updateInProgress;
 
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
+
 @end
 
 #endif
