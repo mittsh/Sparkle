@@ -18,7 +18,7 @@
 
 static NSString *const SUUpdatePermissionPromptTouchBarIndentifier = @"" SPARKLE_BUNDLE_IDENTIFIER ".SUUpdatePermissionPrompt";
 
-@interface SUUpdatePermissionPrompt () <NSTouchBarDelegate>
+@interface SUUpdatePermissionPrompt () <NSTableViewDelegate, NSTouchBarDelegate>
 
 @property (assign) BOOL isShowingMoreInfo;
 @property (assign) BOOL shouldSendProfile;
@@ -49,6 +49,8 @@ static NSString *const SUUpdatePermissionPromptTouchBarIndentifier = @"" SPARKLE
 @synthesize profileTableView;
 @synthesize cancelButton;
 @synthesize checkButton;
+
+#pragma mark -
 
 - (BOOL)shouldAskAboutProfile
 {
@@ -88,7 +90,10 @@ static NSString *const SUUpdatePermissionPromptTouchBarIndentifier = @"" SPARKLE
     }
 }
 
-- (NSString *)description { return [NSString stringWithFormat:@"%@ <%@>", [self class], [self.host bundlePath]]; }
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"%@ <%@>", [self class], [self.host bundlePath]];
+}
 
 - (void)windowDidLoad
 {
@@ -99,11 +104,9 @@ static NSString *const SUUpdatePermissionPromptTouchBarIndentifier = @"" SPARKLE
         [[self window] setFrame:frame display:YES];
     } else {
         // Set the table view's delegate so we can disable row selection.
-        [self.profileTableView setDelegate:(id)self];
+        self.profileTableView.delegate = self;
     }
 }
-
-- (BOOL)tableView:(NSTableView *) __unused tableView shouldSelectRow:(NSInteger) __unused row { return NO; }
 
 
 - (NSImage *)icon
@@ -115,6 +118,8 @@ static NSString *const SUUpdatePermissionPromptTouchBarIndentifier = @"" SPARKLE
 {
     return [NSString stringWithFormat:SULocalizedString(@"Should %1$@ automatically check for updates? You can always check for updates manually from the %1$@ menu.", nil), [self.host name]];
 }
+
+#pragma mark - IBActions
 
 - (IBAction)toggleMoreInfo:(id)__unused sender
 {
@@ -167,6 +172,15 @@ static NSString *const SUUpdatePermissionPromptTouchBarIndentifier = @"" SPARKLE
     [[self window] close];
     [NSApp stopModal];
 }
+
+#pragma mark - NSTableViewDelegate
+
+- (BOOL)tableView:(NSTableView *) __unused tableView shouldSelectRow:(NSInteger) __unused row
+{
+    return NO;
+}
+
+#pragma mark - NSTouchBarDelegate
 
 - (NSTouchBar *)makeTouchBar
 {

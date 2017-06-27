@@ -135,12 +135,12 @@
             break;
 
         case SUOpenInfoURLChoice:
-            [[NSWorkspace sharedWorkspace] openURL:[self.updateItem infoURL]];
+            [[NSWorkspace sharedWorkspace] openURL:self.updateItem.infoURL];
             [self abortUpdate];
             break;
 
         case SUSkipThisVersionChoice:
-            [self.host setObject:[self.updateItem versionString] forUserDefaultsKey:SUSkippedVersionKey];
+            [self.host setObject:self.updateItem.versionString forUserDefaultsKey:SUSkippedVersionKey];
             [self abortUpdate];
             break;
 
@@ -171,32 +171,13 @@
 
 - (NSString *)localizedStringFromByteCount:(long long)value
 {
-    if (![SUOperatingSystem isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){10, 8, 0}]) {
-        if (value < 1000) {
-            return [NSString stringWithFormat:@"%.0lf %@", value / 1.0,
-                    SULocalizedString(@"B", @"the unit for bytes")];
-        }
-
-        if (value < 1000 * 1000) {
-            return [NSString stringWithFormat:@"%.0lf %@", value / 1000.0,
-                    SULocalizedString(@"KB", @"the unit for kilobytes")];
-        }
-
-        if (value < 1000 * 1000 * 1000) {
-            return [NSString stringWithFormat:@"%.1lf %@", value / 1000.0 / 1000.0,
-                    SULocalizedString(@"MB", @"the unit for megabytes")];
-        }
-
-        return [NSString stringWithFormat:@"%.2lf %@", value / 1000.0 / 1000.0 / 1000.0,
-                SULocalizedString(@"GB", @"the unit for gigabytes")];
-    }
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpartial-availability"
-    NSByteCountFormatter *formatter = [[NSByteCountFormatter alloc] init];
-    [formatter setZeroPadsFractionDigits:YES];
+    static NSByteCountFormatter *formatter;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        formatter = [[NSByteCountFormatter alloc] init];
+        formatter.zeroPadsFractionDigits = YES;
+    });
     return [formatter stringFromByteCount:value];
-#pragma clang diagnostic pop
 }
 
 - (void)didDownloadTotalBytesWritten:(uint64_t)totalBytesWritten totalBytesExpectedToWrite:(uint64_t)totalBytesExpectedToWrite
