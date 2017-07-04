@@ -32,6 +32,7 @@
 @synthesize userAgentString = _userAgentString;
 @synthesize httpHeaders = _httpHeaders;
 @synthesize session = _session;
+@synthesize downloadTask = _downloadTask;
 @synthesize updateBlock = _updateBlock;
 @synthesize callbackQueue = _callbackQueue;
 
@@ -114,14 +115,18 @@
         currentDirectory = [downloadCachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_%ld", currentDirectoryName, i++]];
     }
     if (![[NSFileManager defaultManager] createDirectoryAtPath:currentDirectory withIntermediateDirectories:YES attributes:nil error:NULL]) {
-        // @TODO raise an error
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUMissingUpdateError userInfo:@{NSLocalizedDescriptionKey: @"Failed to download update (cannot create temporary directory)."}];
+        }
         return nil;
     }
 
     // Move downloaded file to its new location
     NSString* newFilePath = [currentDirectory stringByAppendingPathComponent:downloadFileName];
     if (![[NSFileManager defaultManager] moveItemAtPath:downloadFilePath toPath:newFilePath error:NULL]) {
-        // @TODO raise an error
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUMissingUpdateError userInfo:@{NSLocalizedDescriptionKey: @"Failed to download update (cannot move downloaded file to temporary a new directory)."}];
+        }
         return nil;
     }
 

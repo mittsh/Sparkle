@@ -42,6 +42,7 @@
 @synthesize downloadedFilePath = _downloadedFilePath;
 @synthesize hostBundlePath = _hostBundlePath;
 @synthesize updateValidator = _updateValidator;
+@synthesize currentDownloader = _currentDownloader;
 
 - (instancetype)initWithConnection:(NSXPCConnection *)connection
 {
