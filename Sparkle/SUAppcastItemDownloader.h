@@ -22,6 +22,7 @@ typedef void(^SUAppcastItemDownloaderUpdateBlock)(NSString* _Nullable downloaded
 
 - (instancetype)initWithAppcastItem:(SUAppcastItem*)appcastItem callbackQueue:(dispatch_queue_t)callbackQueue updateBlock:(SUAppcastItemDownloaderUpdateBlock)updateBlock;
 - (void)downloadInBackground:(BOOL)background;
+- (void)cancel;
 
 @end
 

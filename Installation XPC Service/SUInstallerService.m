@@ -30,6 +30,7 @@
 @property (nonatomic, strong) NSString* downloadedFilePath;
 @property (nonatomic, strong) NSString* hostBundlePath;
 @property (nonatomic, strong) SUUpdateValidator* updateValidator;
+@property (nonatomic, weak) SUAppcastItemDownloader* currentDownloader;
 
 @end
 
@@ -115,7 +116,15 @@
         downloader.userAgentString = options[SUInstallerServiceProtocolOptionsUserAgent];
         downloader.httpHeaders = options[SUInstallerServiceProtocolOptionsHTTPHeaders];
         [downloader downloadInBackground:((NSNumber*)options[SUInstallerServiceProtocolOptionsDownloadInBackground]).boolValue];
+        self.currentDownloader = downloader;
         
+    });
+}
+
+- (void)cancelDownload
+{
+    dispatch_async(self.serviceQueue, ^{
+        [self.currentDownloader cancel];
     });
 }
 

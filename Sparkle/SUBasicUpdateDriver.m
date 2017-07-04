@@ -378,6 +378,11 @@
     [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUDownloadError userInfo:[userInfo copy]]];
 }
 
+- (void)cancelDownload
+{
+    [self.installerServiceProxy cancelDownload];
+}
+
 #pragma mark - Extract Update
 
 - (void)extractUpdate
@@ -550,9 +555,6 @@
 
 - (void)abortUpdate
 {
-    // @TODO: we should clean up download folder
-//    [self cleanUpDownload];
-
     // Stop XPC connection
     [self xpcInvalidateConnection];
 
@@ -571,11 +573,10 @@
             errorToDisplay = [errorToDisplay.userInfo objectForKey:NSUnderlyingErrorKey];
         } while(--finiteRecursion && errorToDisplay);
     }
-// @TODO cancel
-//    if (self.download) {
-//        [self.download cancel];
-//    }
 
+    // Cancel download (if pending)
+    [self cancelDownload];
+    
     // Notify host app that update has aborted
     id<SUUpdaterPrivate> updater = self.updater;
     id<SUUpdaterDelegate> updaterDelegate = updater.delegate;

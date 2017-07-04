@@ -20,6 +20,7 @@
 
 @property (nonatomic, strong, readwrite) SUAppcastItem* appcastItem;
 @property (nonatomic, strong) NSURLSession* session;
+@property (nonatomic, strong) NSURLSessionDownloadTask* downloadTask;
 @property (nonatomic, strong) SUAppcastItemDownloaderUpdateBlock updateBlock;
 @property (nonatomic, strong) dispatch_queue_t callbackQueue;
 
@@ -71,12 +72,20 @@
     NSURLRequest *request = [self downloadRequestInBackground:background];
     NSURLSessionDownloadTask* task = [self.session downloadTaskWithRequest:request];
     [task resume];
+    self.downloadTask = task;
+}
+
+- (void)cancel
+{
+    [self.downloadTask cancel];
+    [self clear];
 }
 
 - (void)clear
 {
     [self.session finishTasksAndInvalidate];
     self.session = nil;
+    self.downloadTask = nil;
 }
 
 #pragma mark - App Cache Directory

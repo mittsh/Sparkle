@@ -27,6 +27,7 @@
 - (void)didNotFindUpdate;
 
 - (void)downloadUpdate;
+- (void)cancelDownload;
 - (void)didDownloadTotalBytesWritten:(uint64_t)totalBytesWritten totalBytesExpectedToWrite:(uint64_t)totalBytesExpectedToWrite;
 
 - (void)extractUpdate;

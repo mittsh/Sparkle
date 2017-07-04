@@ -197,15 +197,13 @@
 
 - (IBAction)cancelDownload:(id)__unused sender
 {
-// @TODO: cancel download
-//    if (self.download) {
-//        [self.download cancel];
-//        
-//        id<SUUpdaterPrivate> updater = self.updater;
-//        if ([[updater delegate] respondsToSelector:@selector(userDidCancelDownload:)]) {
-//            [[updater delegate] userDidCancelDownload:self.updater];
-//        }
-//    }
+    [self cancelDownload];
+
+    id<SUUpdaterPrivate> updater = self.updater;
+    if ([[updater delegate] respondsToSelector:@selector(userDidCancelDownload:)]) {
+        [[updater delegate] userDidCancelDownload:self.updater];
+    }
+
     [self abortUpdate];
 }
 

@@ -28,6 +28,7 @@ typedef void(^SUInstallerServiceCanInstallAndRelaunchBlock)(BOOL canInstallAndRe
 - (void)checkForUpdatesAtURL:(NSURL *)URL options:(NSDictionary<NSString*,id>*)options completionBlock:(SUInstallerServiceCheckForUpdatesBlock)completionBlock;
 
 - (void)downloadUpdateWithLocalIdentifier:(NSString*)localIdentifier options:(NSDictionary<NSString*,id>*)options;
+- (void)cancelDownload;
 
 // @TODO: security around host path
 - (void)extractUpdateWithLocalIdentifier:(NSString *)localIdentifier hostBundlePath:(NSString*)hostBundlePath;
