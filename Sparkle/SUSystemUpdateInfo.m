@@ -21,6 +21,12 @@
 #if APPLICATION_IS_SANDBOXDED
 + (BOOL)systemAllowsAutomaticUpdatesForHost:(SUHost *)host
 {
+    // Does the developer want us to disable automatic updates?
+    NSNumber *developerAllowsAutomaticUpdates = [host objectForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey];
+    if (developerAllowsAutomaticUpdates != nil && !developerAllowsAutomaticUpdates.boolValue) {
+        return NO;
+    }
+
     /* If the host application is sandboxed, there's no way to check if we can
      write in the target directory without creating an XPC service here for that.
      It's probably not worth the effort. We return YES for now.
@@ -36,7 +42,7 @@
     if (developerAllowsAutomaticUpdates != nil && !developerAllowsAutomaticUpdates.boolValue) {
         return NO;
     }
-    
+
     // Can we automatically update in the background without bugging the user (e.g, with a administrator password prompt)?
     // Note it's very well possible to have the bundle be writable but not be able to write into the parent directory
     // And if the bundle isn't writable, but we can write into the parent directory, we will still need to authorize to replace it
