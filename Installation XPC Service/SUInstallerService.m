@@ -76,6 +76,14 @@
 - (void)checkForUpdatesAtURL:(NSURL *)URL options:(NSDictionary<NSString *,id> *)options completionBlock:(SUInstallerServiceCheckForUpdatesBlock)completionBlock
 {
     dispatch_async(self.serviceQueue, ^{
+        // @TODO: Paw: do this better
+        if (![URL.host isEqualToString:@"paw.cloud"] ||
+            ![URL.scheme isEqualToString:@"https"]) {
+            NSError* error = [NSError errorWithDomain:SUSparkleErrorDomain code:SURunningFromDiskImageError userInfo:@{ NSLocalizedDescriptionKey: SULocalizedString(@"Update URL is not trusted", nil) }];
+            completionBlock(nil, error);
+            return;
+        }
+
         SUAppcastLoader *appcastLoader = [[SUAppcastLoader alloc] init];
         appcastLoader.userAgentString = options[SUInstallerServiceProtocolOptionsUserAgent];
         appcastLoader.httpHeaders = options[SUInstallerServiceProtocolOptionsHTTPHeaders];
