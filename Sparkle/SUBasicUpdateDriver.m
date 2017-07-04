@@ -92,12 +92,23 @@
 - (void)checkForUpdatesAtURL:(NSURL *)URL host:(SUHost *)aHost
 {
     [super checkForUpdatesAtURL:URL host:aHost];
-	if (aHost.runningOnReadOnlyVolume)
-	{
-        [self abortUpdateWithError:[NSError errorWithDomain:SUSparkleErrorDomain code:SURunningFromDiskImageError userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"%1$@ can't be updated, because it was opened from a read-only or a temporary location. Use Finder to copy %1$@ to the Applications folder, relaunch it from there, and try again.", nil), [aHost name]] }]];
-        return;
-    }
 
+    // Test ability to write on the host path
+    [self xpcCheckConnection];
+    [self.installerServiceProxy checkWriteOnHostBundlePath:aHost.bundlePath completionBlock:^(BOOL canWrite, NSError * _Nullable error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (canWrite) {
+                [self _performCheckForUpdatesAtURL:URL host:aHost];
+            }
+            else {
+                [self abortUpdateWithError:error];
+            }
+        });
+    }];
+}
+
+- (void)_performCheckForUpdatesAtURL:(NSURL *)URL host:(SUHost *)aHost
+{
     id<SUUpdaterPrivate> updater = self.updater;
     NSString* userAgentString = updater.userAgentString;
     NSDictionary* httpHeaders = updater.httpHeaders;

@@ -52,6 +52,23 @@
     return self;
 }
 
+#pragma mark - Validate Ability to Write on File System
+
+- (void)checkWriteOnHostBundlePath:(NSString *)hostBundlePath completionBlock:(SUInstallerServiceCheckWriteOnHostBundleBlock)completionBlock
+{
+    dispatch_async(self.serviceQueue, ^{
+        SUHost* host = [[SUHost alloc] initWithBundle:[NSBundle bundleWithPath:hostBundlePath]];
+        if (host.runningOnReadOnlyVolume) {
+            NSError* error = [NSError errorWithDomain:SUSparkleErrorDomain code:SURunningFromDiskImageError userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"%1$@ can't be updated, because it was opened from a read-only or a temporary location. Use Finder to copy %1$@ to the Applications folder, relaunch it from there, and try again.", nil), host.name] }];
+            completionBlock(NO, error);
+            return;
+        }
+        else {
+            completionBlock(YES, nil);
+        }
+    });
+}
+
 #pragma mark - Check for Updates
 
 - (void)checkForUpdatesAtURL:(NSURL *)URL options:(NSDictionary<NSString *,id> *)options completionBlock:(SUInstallerServiceCheckForUpdatesBlock)completionBlock

@@ -16,10 +16,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef void(^SUInstallerServiceCheckWriteOnHostBundleBlock)(BOOL canWrite, NSError* _Nullable error);
 typedef void(^SUInstallerServiceCheckForUpdatesBlock)(SUAppcast* _Nullable appcast, NSError* _Nullable error);
 typedef void(^SUInstallerServiceCanInstallAndRelaunchBlock)(BOOL canInstallAndRelaunch);
 
 @protocol SUInstallerServiceProtocol
+
+- (void)checkWriteOnHostBundlePath:(NSString*)hostBundlePath completionBlock:(SUInstallerServiceCheckWriteOnHostBundleBlock)completionBlock;
 
 // @TODO: security around the URL used here
 - (void)checkForUpdatesAtURL:(NSURL *)URL options:(NSDictionary<NSString*,id>*)options completionBlock:(SUInstallerServiceCheckForUpdatesBlock)completionBlock;
