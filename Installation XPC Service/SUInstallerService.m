@@ -283,7 +283,9 @@
 {
     SUHost* host = [[SUHost alloc] initWithBundle:[NSBundle bundleWithPath:hostBundlePath]];
     if (hostBundlePath == nil || host == nil) {
-        *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (host bundle not found)."}];
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (host bundle not found)."}];
+        }
         return NO;
     }
 
@@ -291,10 +293,12 @@
     if (relaunchToolPath == nil ||
         ![[NSFileManager defaultManager] fileExistsAtPath:(NSString* _Nonnull)relaunchToolFileURL.path]) {
         // Note that we explicitly use the host app's name here, since updating plugin for Mail relaunches Mail, not just the plugin.
-        *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SURelaunchError userInfo:@{
-            NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"An error occurred while relaunching %1$@, but the new version will be available next time you run %1$@.", nil), host.name],
-            NSLocalizedFailureReasonErrorKey: [NSString stringWithFormat:@"Couldn't find the relauncher (expected to find it at %@)", relaunchToolFileURL.path],
-        }];
+        if (__error != NULL) {
+        	*__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SURelaunchError userInfo:@{
+            	NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"An error occurred while relaunching %1$@, but the new version will be available next time you run %1$@.", nil), host.name],
+            	NSLocalizedFailureReasonErrorKey: [NSString stringWithFormat:@"Couldn't find the relauncher (expected to find it at %@)", relaunchToolFileURL.path],
+        	}];
+        }
         return NO;
     }
 
@@ -314,21 +318,27 @@
 
     SUHost* host = [[SUHost alloc] initWithBundle:[NSBundle bundleWithPath:hostBundlePath]];
     if (hostBundlePath == nil || host == nil) {
-        *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (host bundle not found)."}];
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (host bundle not found)."}];
+        }
         return nil;
     }
 
     // Get XPC service bundle
     NSBundle *xpcServiceBundle = [NSBundle bundleForClass:[SUInstallerService class]];
     if (xpcServiceBundle == nil) {
-        *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (cannot find Sparkle bundle)."}];
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (cannot find Sparkle bundle)."}];
+        }
         return nil;
     }
 
     // Get relaunch app source path
     NSString *relaunchToolSourcePath = [xpcServiceBundle pathForResource:@SPARKLE_RELAUNCH_TOOL_NAME ofType:@"app"];
     if (relaunchToolSourcePath == nil) {
-        *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (relaunch app not found)."}];
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (relaunch app not found)."}];
+        }
         return nil;
     }
     NSURL *relaunchToolSourceFileURL = [NSURL fileURLWithPath:relaunchToolSourcePath];
@@ -336,7 +346,9 @@
     // Get host app name
     NSString *hostBundleBaseName = host.bundlePath.lastPathComponent.stringByDeletingPathExtension;
     if (hostBundleBaseName == nil) {
-        *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (host app name not found)."}];
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (host app name not found)."}];
+        }
         return nil;
     }
 
@@ -344,7 +356,9 @@
     NSString *relaunchCopyBaseName = [NSString stringWithFormat:@"%@ (Autoupdate).app", hostBundleBaseName];
     NSURL *relaunchCopyTargetFileURL = [NSURL fileURLWithPath:[destinationDirPath stringByAppendingPathComponent:relaunchCopyBaseName]];
     if (relaunchCopyTargetFileURL == nil) {
-        *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (relaunch app target path not found)."}];
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUInstallationError userInfo:@{NSLocalizedDescriptionKey: @"Failed to install update (relaunch app target path not found)."}];
+        }
         return nil;
     }
 
@@ -354,11 +368,12 @@
     SUFileManager *fileManager = [SUFileManager defaultManager];
     if (![self _preparePathForRelaunchTool:relaunchCopyTargetFileURL.path error:&copyError] ||
         ![fileManager copyItemAtURL:relaunchToolSourceFileURL toURL:relaunchCopyTargetFileURL error:&copyError]) {
-        *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SURelaunchError userInfo:@{
-            NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"An error occurred while relaunching %1$@, but the new version will be available next time you run %1$@.", nil), host.name],
-            NSLocalizedFailureReasonErrorKey: [NSString stringWithFormat:@"Couldn't copy relauncher (%@) to temporary path (%@)! %@",
-                                                                         relaunchToolSourceFileURL.path, relaunchCopyTargetFileURL.path, (copyError != nil ? copyError.localizedDescription : @"")],
-        }];
+        if (__error != NULL) {
+            *__error = [NSError errorWithDomain:SUSparkleErrorDomain code:SURelaunchError userInfo:@{
+				NSLocalizedDescriptionKey: [NSString stringWithFormat:SULocalizedString(@"An error occurred while relaunching %1$@, but the new version will be available next time you run %1$@.", nil), host.name],
+                NSLocalizedFailureReasonErrorKey: [NSString stringWithFormat:@"Couldn't copy relauncher (%@) to temporary path (%@)! %@", relaunchToolSourceFileURL.path, relaunchCopyTargetFileURL.path, (copyError != nil ? copyError.localizedDescription : @"")],
+            }];
+        }
         return nil;
     }
 
