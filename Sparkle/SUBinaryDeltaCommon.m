@@ -238,7 +238,7 @@ BOOL modifyPermissions(NSString *path, mode_t desiredPermissions)
         return NO;
     }
     NSNumber *permissions = [attributes objectForKey:NSFilePosixPermissions];
-    if (!permissions) {
+    if (permissions == nil) {
         return NO;
     }
     mode_t newMode = ([permissions unsignedShortValue] & ~PERMISSION_FLAGS) | desiredPermissions;
