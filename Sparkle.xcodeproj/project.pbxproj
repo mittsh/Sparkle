@@ -3869,6 +3869,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 724BB37F1D31D1EA005D534A /* ConfigInstallerConnectionDebug.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Debug;
 		};
@@ -3876,6 +3877,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 724BB37E1D31D1EA005D534A /* ConfigInstallerConnection.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Coverage;
 		};
@@ -3883,6 +3885,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 724BB37E1D31D1EA005D534A /* ConfigInstallerConnection.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Release;
 		};
@@ -3890,6 +3893,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 724BB3A51D3338C8005D534A /* ConfigInstallerStatusDebug.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Debug;
 		};
@@ -3897,6 +3901,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 724BB3A41D3338C8005D534A /* ConfigInstallerStatus.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Coverage;
 		};
@@ -3904,6 +3909,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 724BB3A41D3338C8005D534A /* ConfigInstallerStatus.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Release;
 		};
@@ -3932,6 +3938,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 72F94ED51CC3441A002DEE68 /* ConfigInstallerLauncherDebug.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = InstallerLauncher/Info.plist;
 			};
 			name = Debug;
@@ -3940,6 +3947,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 72F94ED51CC3441A002DEE68 /* ConfigInstallerLauncherDebug.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = InstallerLauncher/Info.plist;
 			};
 			name = Coverage;
@@ -3948,6 +3956,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 726E07C11CAF1E79001A286B /* ConfigInstallerLauncher.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = InstallerLauncher/Info.plist;
 			};
 			name = Release;
@@ -4022,6 +4031,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FA1941CE0D94A70100DD942E /* ConfigRelaunch.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Debug;
 		};
@@ -4029,6 +4039,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FA1941CE0D94A70100DD942E /* ConfigRelaunch.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Coverage;
 		};
@@ -4036,6 +4047,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FA1941CE0D94A70100DD942E /* ConfigRelaunch.xcconfig */;
 			buildSettings = {
+				ENABLE_HARDENED_RUNTIME = YES;
 			};
 			name = Release;
 		};
